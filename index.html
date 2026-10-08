@@ -861,11 +861,19 @@
       var grid = rows.map(function (r) {
         return SECTION_EMOJI[r.q.section] + (r.right ? "✅" : "❌");
       }).join(" ");
-      var text = "ACTLE — " + score + "/4\n" + grid;
+      var shareUrl = "https://actle.org";
+      var text = "I scored " + score + "/4 on ACTLE today!\n" + grid;
       var note = document.getElementById("copy-note");
       function showNote() { note.hidden = false; setTimeout(function () { note.hidden = true; }, 1800); }
+
+      if (navigator.share) {
+        navigator.share({ title: "ACTLE", text: text, url: shareUrl }).catch(function () {
+          // user canceled the share sheet, or the browser refused it — either way, no error to show
+        });
+        return;
+      }
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(showNote, showNote);
+        navigator.clipboard.writeText(text + "\n" + shareUrl).then(showNote, showNote);
       } else {
         showNote();
       }
