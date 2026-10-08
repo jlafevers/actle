@@ -867,7 +867,9 @@
       function showNote() { note.hidden = false; setTimeout(function () { note.hidden = true; }, 1800); }
 
       if (navigator.share) {
-        navigator.share({ title: "ACTLE", text: text, url: shareUrl }).catch(function () {
+        // iOS Messages drops the "text" field and shows only a link card when "url" is
+        // set separately, so fold the link into the text itself instead.
+        navigator.share({ title: "ACTLE", text: text + "\n" + shareUrl }).catch(function () {
           // user canceled the share sheet, or the browser refused it — either way, no error to show
         });
         return;
