@@ -1,0 +1,889 @@
+<title>ACTLE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;0,9..144,900;1,9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+  /* layout: one centered scorecard-style panel; a scantron bubble row per question; a paper-stock ground with a faint rule */
+  :root {
+    --bg: #f3ecdd;
+    --paper-line: #e3d8bf;
+    --surface: #fffdf7;
+    --ink: #201c16;
+    --ink-dim: #6b6256;
+    --accent: #b8791f;
+    --accent-ink: #2a1a05;
+    --border: #ddd0b2;
+    --correct: #2f7a4d;
+    --correct-bg: #e3f1e6;
+    --incorrect: #b8392f;
+    --incorrect-bg: #f6e3e0;
+    --shadow: 0 1px 0 rgba(32,28,22,0.04);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #171510;
+      --paper-line: #231f17;
+      --surface: #211d16;
+      --ink: #efe8d8;
+      --ink-dim: #a69a85;
+      --accent: #e3a83f;
+      --accent-ink: #1b1204;
+      --border: #3a3326;
+      --correct: #6cc98d;
+      --correct-bg: #1d2a1f;
+      --incorrect: #e2756b;
+      --incorrect-bg: #2d1e1b;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #171510;
+    --paper-line: #231f17;
+    --surface: #211d16;
+    --ink: #efe8d8;
+    --ink-dim: #a69a85;
+    --accent: #e3a83f;
+    --accent-ink: #1b1204;
+    --border: #3a3326;
+    --correct: #6cc98d;
+    --correct-bg: #1d2a1f;
+    --incorrect: #e2756b;
+    --incorrect-bg: #2d1e1b;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background:
+      repeating-linear-gradient(to bottom, transparent 0 38px, var(--paper-line) 38px 39px),
+      var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    padding-inline: 16px;
+    display: flex;
+    justify-content: center;
+  }
+  .wrap { width: 100%; max-width: 640px; padding-block: 36px 48px; }
+
+  .masthead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+  .masthead .name {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 900;
+    font-size: clamp(28px, 6vw, 38px);
+    letter-spacing: -0.01em;
+  }
+  .masthead .meta {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--ink-dim);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-align: right;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 28px;
+  }
+  @media (max-width: 480px) { .card { padding: 20px 16px; } }
+
+  /* ---------- start screen ---------- */
+  .start-copy { font-size: 16px; line-height: 1.55; color: var(--ink-dim); max-width: 50ch; }
+  .start-stats {
+    display: flex; gap: 10px; margin: 22px 0; flex-wrap: wrap;
+  }
+  .stat-chip {
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 7px 14px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--ink-dim);
+    letter-spacing: 0.03em;
+  }
+  .sections-preview { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 26px; }
+  .tag {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    color: var(--ink-dim);
+  }
+
+  button.primary {
+    font-family: "IBM Plex Sans", sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    border: none;
+    border-radius: 10px;
+    padding: 13px 24px;
+    cursor: pointer;
+  }
+  button.primary:hover { filter: brightness(1.05); }
+  button.primary:focus-visible, button.ghost:focus-visible, .bubble:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  button.ghost {
+    font-family: "IBM Plex Sans", sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 20px;
+    cursor: pointer;
+  }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+  /* ---------- progress dots ---------- */
+  .progress-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    flex: none;
+  }
+  .dot.current { border-color: var(--accent); background: var(--accent); }
+  .dot.correct { border-color: var(--correct); background: var(--correct); }
+  .dot.incorrect { border-color: var(--incorrect); background: var(--incorrect); }
+  .progress-count {
+    margin-left: auto;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--ink-dim);
+  }
+
+  /* ---------- timer ---------- */
+  .timer-row { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .timer-track {
+    flex: 1; height: 6px; border-radius: 999px;
+    background: var(--border);
+    overflow: hidden;
+  }
+  .timer-fill {
+    height: 100%; width: 100%;
+    background: var(--accent);
+    transition: width 1s linear, background-color 0.3s;
+  }
+  .timer-fill.danger { background: var(--incorrect); }
+  .timer-num {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--ink-dim);
+    min-width: 30px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .timer-num.danger { color: var(--incorrect); }
+
+  .q-tag { margin-bottom: 14px; }
+  .q-prompt {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 600;
+    font-size: clamp(19px, 4vw, 23px);
+    line-height: 1.35;
+    margin-bottom: 4px;
+    text-wrap: balance;
+  }
+  .q-passage {
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: var(--ink-dim);
+    border-left: 2px solid var(--border);
+    padding-left: 14px;
+    margin: 14px 0 18px;
+    font-style: italic;
+  }
+  .q-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0 18px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 13px;
+  }
+  .q-table th, .q-table td {
+    border: 1px solid var(--border);
+    padding: 6px 10px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .q-table th { color: var(--ink-dim); font-weight: 500; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; margin: 20px 0 8px; }
+  .bubble {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 14.5px;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .bubble:hover:not(:disabled) { border-color: var(--accent); }
+  .bubble:disabled { cursor: default; }
+  .letter {
+    flex: none;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-dim);
+  }
+  .bubble.picked .letter { background: var(--ink); border-color: var(--ink); color: var(--surface); }
+  .bubble.show-correct { border-color: var(--correct); background: var(--correct-bg); }
+  .bubble.show-correct .letter { background: var(--correct); border-color: var(--correct); color: #fff; }
+  .bubble.show-incorrect { border-color: var(--incorrect); background: var(--incorrect-bg); }
+  .bubble.show-incorrect .letter { background: var(--incorrect); border-color: var(--incorrect); color: #fff; }
+
+  .verdict { display: flex; align-items: center; gap: 8px; margin: 18px 0 6px; font-weight: 600; font-size: 14.5px; }
+  .verdict.correct { color: var(--correct); }
+  .verdict.incorrect { color: var(--incorrect); }
+  .explain { font-size: 14px; line-height: 1.6; color: var(--ink-dim); margin-bottom: 20px; }
+
+  /* ---------- results ---------- */
+  .score-hero { display: flex; align-items: baseline; gap: 16px; margin-bottom: 6px; flex-wrap: wrap; }
+  .score-big {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 900;
+    font-size: clamp(46px, 11vw, 64px);
+    line-height: 1;
+  }
+  .score-label { font-family: "IBM Plex Mono", monospace; font-size: 13px; color: var(--ink-dim); letter-spacing: 0.04em; text-transform: uppercase; }
+  .score-verdict { font-size: 16px; color: var(--ink-dim); margin-bottom: 24px; }
+
+  .breakdown { display: flex; flex-direction: column; gap: 0; margin-bottom: 26px; border-top: 1px solid var(--border); }
+  .b-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .b-row .b-tag { width: 72px; flex: none; }
+  .b-row .b-q { flex: 1; color: var(--ink-dim); min-width: 0; }
+  .b-row .b-mark { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 13px; flex: none; }
+  .b-row .b-mark.correct { color: var(--correct); }
+  .b-row .b-mark.incorrect { color: var(--incorrect); }
+
+  .copy-note { font-size: 12.5px; color: var(--ink-dim); }
+
+  [hidden] { display: none !important; }
+  @media (prefers-reduced-motion: no-preference) {
+    .card { animation: rise 0.35s ease both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  }
+</style>
+
+<div class="wrap">
+  <div class="masthead">
+    <div class="name">ACTLE</div>
+    <div class="meta" id="puzzle-meta">4 questions<br>60 seconds each</div>
+  </div>
+
+  <div class="card" id="card">
+    <!-- content injected by script -->
+  </div>
+</div>
+
+<script>
+(function(){
+  var TIME_LIMIT = 60;
+  var SECTION_EMOJI = { Math: "🧮", English: "🔤", Reading: "📖", Science: "🔬" };
+  var SECTIONS = ["Math", "English", "Reading", "Science"];
+
+  var POOLS = {
+    Math: [
+      {
+        prompt: "If 3x − 7 = 2x + 5, what is x?",
+        options: ["−12", "2/5", "5", "12"],
+        correct: 3,
+        explain: "Subtract 2x from both sides to get x − 7 = 5, then add 7: x = 12."
+      },
+      {
+        prompt: "Solve for x: 5(x − 2) = 3x + 4",
+        options: ["3", "5", "7", "10"],
+        correct: 2,
+        explain: "Distribute to get 5x − 10 = 3x + 4, then combine like terms: 2x = 14, so x = 7."
+      },
+      {
+        prompt: "What is 15% of 240?",
+        options: ["24", "30", "36", "40"],
+        correct: 2,
+        explain: "15% of 240 = 0.15 × 240 = 36."
+      },
+      {
+        prompt: "A rectangle has a length of 9 and a width of 4. What is its perimeter?",
+        options: ["13", "26", "36", "40"],
+        correct: 1,
+        explain: "Perimeter = 2(length + width) = 2(9 + 4) = 26."
+      },
+      {
+        prompt: "If f(x) = 2x² − 3, what is f(3)?",
+        options: ["9", "12", "15", "18"],
+        correct: 2,
+        explain: "f(3) = 2(3)² − 3 = 2(9) − 3 = 15."
+      },
+      {
+        prompt: "What is the slope of the line through (2, 3) and (6, 11)?",
+        options: ["1", "2", "4", "8"],
+        correct: 1,
+        explain: "Slope = (11 − 3) / (6 − 2) = 8/4 = 2."
+      },
+      {
+        prompt: "Simplify: x³ × x²",
+        options: ["x⁵", "x⁶", "x", "x¹⁰"],
+        correct: 0,
+        explain: "When multiplying powers with the same base, add the exponents: 3 + 2 = 5, so x³ × x² = x⁵."
+      }
+    ],
+    English: [
+      {
+        prompt: "Which sentence is correctly worded?",
+        options: [
+          "Neither of the students were ready for the exam.",
+          "Neither of the students was ready for the exam.",
+          "Neither of the students are ready for the exam.",
+          "Neither of the student's was ready for the exam."
+        ],
+        correct: 1,
+        explain: "“Neither” is singular, so it takes the singular verb “was,” regardless of the plural noun that follows “of.”"
+      },
+      {
+        prompt: "Which sentence uses apostrophes correctly?",
+        options: [
+          "Its important to proofread you're work before submitting it.",
+          "It's important to proofread your work before submitting it.",
+          "It's important to proofread you're work before submitting it.",
+          "Its important to proofread your work before submitting it."
+        ],
+        correct: 1,
+        explain: "“It's” is the contraction of “it is,” and “your” is the possessive needed before “work.”"
+      },
+      {
+        prompt: "Which sentence has correct subject-verb agreement?",
+        options: [
+          "The list of items are on the desk.",
+          "The list of items is on the desk.",
+          "The list of items were on the desk.",
+          "The list of items be on the desk."
+        ],
+        correct: 1,
+        explain: "The subject is “list” (singular); “of items” is a prepositional phrase that doesn’t change the verb."
+      },
+      {
+        prompt: "Which version punctuates the introductory phrase correctly?",
+        options: [
+          "After the meeting Sarah, left early.",
+          "After the meeting, Sarah left early.",
+          "After, the meeting Sarah left early.",
+          "After the meeting Sarah left, early."
+        ],
+        correct: 1,
+        explain: "A comma follows an introductory phrase, setting it off from the main clause that begins with the subject."
+      },
+      {
+        prompt: "Choose the best word: “The committee could not decide ___ proposal to approve.”",
+        options: ["who's", "whose", "who", "whom"],
+        correct: 1,
+        explain: "“Whose” shows possession (“whose proposal”), unlike “who's,” which means “who is.”"
+      },
+      {
+        prompt: "Which sentence avoids a dangling modifier?",
+        options: [
+          "Walking to school, the rain started to fall.",
+          "Walking to school, I got caught in the rain.",
+          "The rain started to fall, walking to school.",
+          "Walking to school started the rain falling."
+        ],
+        correct: 1,
+        explain: "The modifier “walking to school” must describe the subject right after it — “I,” not “the rain.”"
+      },
+      {
+        prompt: "Which shows the correct plural possessive?",
+        options: [
+          "The childrens' toys were scattered everywhere.",
+          "The children's toys were scattered everywhere.",
+          "The childrens toy's were scattered everywhere.",
+          "The children toys' were scattered everywhere."
+        ],
+        correct: 1,
+        explain: "“Children” is already plural, so its possessive simply adds ’s: “children's.”"
+      }
+    ],
+    Reading: [
+      {
+        passage: "After three failed harvests, the town’s grain reserves dwindled to almost nothing. When the merchant Elsbeth arrived with a wagon of wheat from the valley, she found she could set almost any price she wished — and did.",
+        prompt: "The passage suggests Elsbeth’s prices were high primarily because:",
+        options: [
+          "She had traveled a long distance to reach the town.",
+          "The town had an urgent, unmet need for grain.",
+          "She was known for dishonest dealing.",
+          "The wheat she carried was of unusually high quality."
+        ],
+        correct: 1,
+        explain: "The passage emphasizes scarcity — three failed harvests, reserves at nothing — as the reason demand, and so price, could run high."
+      },
+      {
+        passage: "The old lighthouse keeper had not seen a ship pass in nineteen days. Still, each evening he climbed the spiral stairs, lit the lamp, and polished the glass until it shone.",
+        prompt: "The keeper’s nightly routine suggests that he:",
+        options: [
+          "believes a ship will eventually come.",
+          "has forgotten how to do anything else.",
+          "is required to do so by law.",
+          "no longer cares whether ships pass."
+        ],
+        correct: 0,
+        explain: "Continuing the ritual despite nineteen empty days implies a quiet faith that a ship will come."
+      },
+      {
+        passage: "Mara had rehearsed her apology for three days, choosing each word with the care of someone defusing a bomb. When she finally knocked on the door, no one answered.",
+        prompt: "The comparison to “defusing a bomb” mainly conveys that Mara:",
+        options: [
+          "was skilled at resolving conflict.",
+          "considered the apology dangerous to get wrong.",
+          "found the door difficult to open.",
+          "was afraid of explosives."
+        ],
+        correct: 1,
+        explain: "The simile emphasizes the care and perceived risk Mara felt, not a literal danger."
+      },
+      {
+        passage: "The orchard had been in the family for four generations, yet it was Teo, the youngest, who finally convinced his grandfather to let the north field go fallow for a season.",
+        prompt: "This detail suggests Teo’s grandfather:",
+        options: [
+          "did not trust Teo’s judgment about farming.",
+          "was initially resistant to changing established practice.",
+          "wanted to sell the north field.",
+          "had let every field go fallow before."
+        ],
+        correct: 1,
+        explain: "“Finally convinced” implies persuasion was needed, pointing to prior resistance."
+      },
+      {
+        passage: "Every winter, the river froze thick enough to walk on, and every winter the town elders warned the children to stay off the ice — warnings the children treated as a dare.",
+        prompt: "The passage implies that the children’s attitude toward the warnings was one of:",
+        options: ["fearful obedience.", "genuine confusion.", "playful defiance.", "complete indifference."],
+        correct: 2,
+        explain: "Treating a warning “as a dare” shows the children were provoked to disobey, not indifferent or afraid."
+      },
+      {
+        passage: "The museum’s newest exhibit displayed the explorer’s journals beside the equipment he’d carried — a compass with a cracked face, a coat worn thin at the elbows.",
+        prompt: "The chosen details about the equipment mainly serve to:",
+        options: [
+          "prove the explorer was poorly prepared.",
+          "suggest how much use and hardship the items endured.",
+          "explain how compasses are made.",
+          "criticize the museum’s curation choices."
+        ],
+        correct: 1,
+        explain: "The wear described — cracked, worn thin — points to extensive use over a difficult journey."
+      },
+      {
+        passage: "Every email from the new manager ended with the same line: ‘Let me know if anything is unclear.’ After a month, no one had ever taken her up on it.",
+        prompt: "This detail most strongly suggests that the employees:",
+        options: [
+          "found her instructions perfectly clear every time.",
+          "were hesitant to ask her questions.",
+          "did not read her emails.",
+          "preferred to email each other instead."
+        ],
+        correct: 1,
+        explain: "The offer going unused for a full month, across many emails, points to reluctance rather than certainty."
+      }
+    ],
+    Science: [
+      {
+        table: { headers: ["Depth (m)", "0", "10", "20", "30", "40"], row: ["Temp (°C)", "22", "21", "15", "8", "6"] },
+        prompt: "Based on the table, between which two depths does temperature drop the most per 10 m?",
+        options: ["0 m–10 m", "10 m–20 m", "20 m–30 m", "30 m–40 m"],
+        correct: 2,
+        explain: "The drops are 1°, 6°, 7°, and 2° respectively — the 20–30 m interval loses the most, 7°C."
+      },
+      {
+        table: { headers: ["Temp (°C)", "10", "20", "30", "40"], row: ["Reaction time (s)", "12", "8", "5", "4"] },
+        prompt: "Based on the table, as temperature increases, reaction time:",
+        options: [
+          "increases steadily.",
+          "decreases, with the rate of decrease slowing at higher temperatures.",
+          "stays the same.",
+          "increases, then decreases."
+        ],
+        correct: 1,
+        explain: "The drops are 4, 3, then 1 second — reaction time keeps falling, but by smaller amounts each step."
+      },
+      {
+        table: { headers: ["pH", "4", "5", "6", "7", "8", "9"], row: ["Colonies", "2", "15", "40", "52", "35", "10"] },
+        prompt: "The data indicate that bacterial growth is greatest near a pH of:",
+        options: ["4", "7", "8", "9"],
+        correct: 1,
+        explain: "The colony count peaks at pH 7, with 52 colonies — higher than any other pH tested."
+      },
+      {
+        table: { headers: ["Light (hr/day)", "6", "9", "12", "15", "18"], row: ["Height (cm)", "8", "14", "19", "21", "20"] },
+        prompt: "Compared to the duration before it, which light duration produced the greatest height gain per added hour of light?",
+        options: ["9 hours", "12 hours", "15 hours", "18 hours"],
+        correct: 1,
+        explain: "From 9 to 12 hours, height rose 5 cm over 3 hours (≈ 1.7 cm/hr) — a faster rate than the other intervals."
+      },
+      {
+        table: { headers: ["Altitude (m)", "0", "1000", "2000", "3000", "4000"], row: ["Pressure (kPa)", "101", "90", "80", "70", "62"] },
+        prompt: "The table shows that atmospheric pressure and altitude have what kind of relationship?",
+        options: [
+          "direct — both increase together.",
+          "inverse — one increases as the other decreases.",
+          "no clear relationship.",
+          "cyclical."
+        ],
+        correct: 1,
+        explain: "As altitude rises, pressure consistently falls — the hallmark of an inverse relationship."
+      },
+      {
+        table: { headers: ["Salt (g/L)", "0", "10", "20", "30", "40"], row: ["Boiling pt (°C)", "100", "100.5", "101", "101.6", "102.2"] },
+        prompt: "Predicting the boiling point at 50 g/L of salt, beyond the data shown, would require:",
+        options: [
+          "extrapolating beyond the given data.",
+          "interpolating within the given data.",
+          "ignoring the trend entirely.",
+          "averaging all given values."
+        ],
+        correct: 0,
+        explain: "50 g/L exceeds the highest value tested (40 g/L), so estimating it means extending the trend beyond the observed range — extrapolation."
+      },
+      {
+        table: { headers: ["Time (min)", "0", "5", "10", "15", "20"], row: ["Temp (°C)", "90", "78", "68", "60", "54"] },
+        prompt: "Based on the data, the rate at which the coffee cools is:",
+        options: ["constant throughout.", "slowing over time.", "speeding up over time.", "impossible to determine."],
+        correct: 1,
+        explain: "The drops are 12°, 10°, 8°, then 6° — the cooling rate keeps shrinking, so it is slowing over time."
+      }
+    ]
+  };
+  var LETTERS = ["A", "B", "C", "D"];
+
+  function todayKey() {
+    var d = new Date();
+    var m = ("0" + (d.getMonth() + 1)).slice(-2);
+    var day = ("0" + d.getDate()).slice(-2);
+    return d.getFullYear() + "-" + m + "-" + day;
+  }
+  function hashStr(s) {
+    var h = 5381;
+    for (var i = 0; i < s.length; i++) h = (((h * 33) ^ s.charCodeAt(i)) >>> 0);
+    return h;
+  }
+  function puzzleNumber(dateStr) {
+    var parts = dateStr.split("-").map(Number);
+    var d = new Date(parts[0], parts[1] - 1, parts[2]);
+    var epoch = new Date(2026, 0, 1);
+    return Math.floor((d - epoch) / 86400000) + 1;
+  }
+  function buildDaily(dateStr) {
+    return SECTIONS.map(function (sec) {
+      var pool = POOLS[sec];
+      var idx = hashStr(dateStr + "|" + sec) % pool.length;
+      var q = pool[idx];
+      return Object.assign({ section: sec }, q);
+    });
+  }
+
+  var currentDayKey = todayKey();
+  var QUESTIONS = buildDaily(currentDayKey);
+
+  var card = document.getElementById("card");
+
+  var state = {
+    started: false,
+    index: 0,
+    picked: [],      // index picked per question; -1 means timed out unanswered
+    finished: false
+  };
+
+  // timer bookkeeping lives outside the persisted/snapshot state
+  var timerId = null;
+  var timerForIndex = -1;
+  var secondsLeft = TIME_LIMIT;
+
+  function prettyDate(dateStr) {
+    var parts = dateStr.split("-").map(Number);
+    var d = new Date(parts[0], parts[1] - 1, parts[2]);
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  }
+  function refreshMeta() {
+    var meta = document.getElementById("puzzle-meta");
+    if (!meta) return;
+    meta.innerHTML = "Puzzle #" + puzzleNumber(currentDayKey) + " · " + prettyDate(currentDayKey) + "<br>60 seconds each";
+  }
+  refreshMeta();
+
+  // check once a minute whether local midnight has passed; if so, load a fresh puzzle
+  setInterval(function () {
+    var k = todayKey();
+    if (k === currentDayKey) return;
+    currentDayKey = k;
+    QUESTIONS = buildDaily(currentDayKey);
+    clearTimer();
+    state.started = false;
+    state.index = 0;
+    state.picked = [];
+    state.finished = false;
+    refreshMeta();
+    render();
+  }, 30000);
+
+  function clearTimer() {
+    if (timerId) { clearInterval(timerId); timerId = null; }
+    timerForIndex = -1;
+  }
+
+  function bestScore() {
+    try { return JSON.parse(localStorage.getItem("actle-best") || "null"); }
+    catch (e) { return null; }
+  }
+  function saveBest(score) {
+    try {
+      var best = bestScore();
+      if (best === null || score > best) localStorage.setItem("actle-best", JSON.stringify(score));
+    } catch (e) {}
+  }
+
+  function render() {
+    if (!state.started) return renderStart();
+    if (state.finished) return renderResults();
+    return renderQuestion();
+  }
+
+  function renderStart() {
+    clearTimer();
+    var best = bestScore();
+    var bestLine = best === null ? "" :
+      '<div class="stat-chip">Best so far · ' + best + '/4</div>';
+    card.innerHTML =
+      '<div class="start-copy">One question from each ACT section — Math, English, Reading, Science. You get 60 seconds on the clock per question, then the answer locks in and you see how you did.</div>' +
+      '<div class="sections-preview">' +
+        '<span class="tag">Math</span><span class="tag">English</span><span class="tag">Reading</span><span class="tag">Science</span>' +
+      '</div>' +
+      '<div class="start-stats"><div class="stat-chip">4 questions</div><div class="stat-chip">60s each</div>' + bestLine + '</div>' +
+      '<button class="primary" id="go">Start the clock</button>';
+    document.getElementById("go").addEventListener("click", function () {
+      state.started = true;
+      render();
+    });
+  }
+
+  function paintTimer() {
+    var fill = document.getElementById("timer-fill");
+    var num = document.getElementById("timer-num");
+    if (!fill || !num) return;
+    var pct = Math.max(0, (secondsLeft / TIME_LIMIT) * 100);
+    fill.style.width = pct + "%";
+    num.textContent = secondsLeft + "s";
+    var danger = secondsLeft <= 10;
+    fill.classList.toggle("danger", danger);
+    num.classList.toggle("danger", danger);
+  }
+
+  function startTimerIfNeeded(i) {
+    if (timerForIndex === i) { paintTimer(); return; }
+    clearTimer();
+    timerForIndex = i;
+    secondsLeft = TIME_LIMIT;
+    paintTimer();
+    timerId = setInterval(function () {
+      secondsLeft--;
+      if (secondsLeft <= 0) {
+        clearTimer();
+        state.picked[i] = -1;
+        render();
+        return;
+      }
+      paintTimer();
+    }, 1000);
+  }
+
+  function renderQuestion() {
+    var i = state.index;
+    var q = QUESTIONS[i];
+    var picked = state.picked[i];
+    var answered = picked !== undefined;
+
+    var dots = "";
+    for (var d = 0; d < QUESTIONS.length; d++) {
+      var cls = "dot";
+      if (d === i && !answered) cls += " current";
+      else if (state.picked[d] !== undefined) {
+        cls += state.picked[d] === QUESTIONS[d].correct ? " correct" : " incorrect";
+      }
+      dots += '<span class="' + cls + '"></span>';
+    }
+
+    var passageHtml = q.passage ? '<div class="q-passage">' + q.passage + '</div>' : "";
+    var tableHtml = "";
+    if (q.table) {
+      tableHtml = '<table class="q-table"><thead><tr>' +
+        q.table.headers.map(function (h) { return "<th>" + h + "</th>"; }).join("") +
+        '</tr></thead><tbody><tr>' +
+        q.table.row.map(function (c) { return "<td>" + c + "</td>"; }).join("") +
+        '</tr></tbody></table>';
+    }
+
+    var optionsHtml = q.options.map(function (opt, oi) {
+      var cls = "bubble";
+      var dis = "";
+      if (answered) {
+        dis = "disabled";
+        if (oi === q.correct) cls += " show-correct";
+        else if (oi === picked) cls += " show-incorrect";
+        if (oi === picked && picked > -1) cls += " picked";
+      }
+      return '<button class="' + cls + '" data-i="' + oi + '" ' + dis + '>' +
+        '<span class="letter">' + LETTERS[oi] + '</span><span>' + opt + '</span></button>';
+    }).join("");
+
+    var timerHtml = answered ? "" :
+      '<div class="timer-row"><div class="timer-track"><div class="timer-fill" id="timer-fill"></div></div>' +
+      '<span class="timer-num" id="timer-num">' + secondsLeft + 's</span></div>';
+
+    var verdictHtml = "";
+    if (answered) {
+      var timedOut = picked === -1;
+      var isRight = !timedOut && picked === q.correct;
+      var label = timedOut ? "Time’s up" : (isRight ? "Correct" : "Not quite");
+      verdictHtml =
+        '<div class="verdict ' + (isRight ? "correct" : "incorrect") + '">' + label + '</div>' +
+        '<div class="explain">' + q.explain + '</div>' +
+        '<div class="btn-row"><button class="primary" id="next">' +
+        (i === QUESTIONS.length - 1 ? "See results" : "Next question") + '</button></div>';
+    }
+
+    card.innerHTML =
+      '<div class="progress-row">' + dots + '<span class="progress-count">' + (i + 1) + ' / ' + QUESTIONS.length + '</span></div>' +
+      (answered ? "" : '<div class="timer-row"><div class="timer-track"><div class="timer-fill" id="timer-fill"></div></div><span class="timer-num" id="timer-num">' + secondsLeft + 's</span></div>') +
+      '<div class="q-tag"><span class="tag">' + q.section + '</span></div>' +
+      '<div class="q-prompt">' + q.prompt + '</div>' +
+      passageHtml + tableHtml +
+      '<div class="options">' + optionsHtml + '</div>' +
+      verdictHtml;
+
+    if (!answered) {
+      startTimerIfNeeded(i);
+      Array.prototype.forEach.call(card.querySelectorAll(".bubble"), function (b) {
+        b.addEventListener("click", function () {
+          clearTimer();
+          state.picked[i] = parseInt(b.getAttribute("data-i"), 10);
+          render();
+        });
+      });
+    } else {
+      clearTimer();
+      document.getElementById("next").addEventListener("click", function () {
+        if (i === QUESTIONS.length - 1) {
+          state.finished = true;
+        } else {
+          state.index++;
+        }
+        render();
+      });
+    }
+  }
+
+  function renderResults() {
+    clearTimer();
+    var score = 0;
+    var rows = QUESTIONS.map(function (q, i) {
+      var right = state.picked[i] === q.correct;
+      if (right) score++;
+      return { q: q, right: right, timedOut: state.picked[i] === -1 };
+    });
+    saveBest(score);
+
+    var verdictText = [
+      "Worth another lap — review the explanations and try again.",
+      "A rough start, but the pattern's there.",
+      "Right down the middle — solid, with room to sharpen.",
+      "Clean sweep — all four, no mistakes."
+    ][score];
+
+    var breakdownHtml = rows.map(function (r) {
+      var markText = r.right ? "Correct" : (r.timedOut ? "Timed out" : "Missed");
+      return '<div class="b-row"><span class="tag b-tag">' + r.q.section + '</span>' +
+        '<span class="b-q">' + r.q.prompt + '</span>' +
+        '<span class="b-mark ' + (r.right ? "correct" : "incorrect") + '">' + markText + '</span></div>';
+    }).join("");
+
+    card.innerHTML =
+      '<div class="score-hero"><span class="score-big">' + score + '/4</span><span class="score-label">Final score</span></div>' +
+      '<div class="score-verdict">' + verdictText + '</div>' +
+      '<div class="breakdown">' + breakdownHtml + '</div>' +
+      '<div class="btn-row">' +
+        '<button class="primary" id="again">Play again</button>' +
+        '<button class="ghost" id="share">Share score</button>' +
+        '<span class="copy-note" id="copy-note" hidden>Copied — paste it anywhere.</span>' +
+      '</div>';
+
+    document.getElementById("again").addEventListener("click", function () {
+      state.index = 0;
+      state.picked = [];
+      state.finished = false;
+      render();
+    });
+    document.getElementById("share").addEventListener("click", function () {
+      var grid = rows.map(function (r) {
+        return SECTION_EMOJI[r.q.section] + (r.right ? "✅" : "❌");
+      }).join(" ");
+      var text = "ACTLE — " + score + "/4\n" + grid;
+      var note = document.getElementById("copy-note");
+      function showNote() { note.hidden = false; setTimeout(function () { note.hidden = true; }, 1800); }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(showNote, showNote);
+      } else {
+        showNote();
+      }
+    });
+  }
+
+  function boot(data) {
+    if (data && typeof data === "object") {
+      state = Object.assign(state, data);
+    }
+    render();
+  }
+
+  if (window.claude && window.claude.hot) {
+    window.claude.hot.snapshot(function () { return state; });
+    window.claude.hot.ready ? window.claude.hot.ready(boot) : boot(window.claude.hot.data || {});
+  } else {
+    boot({});
+  }
+})();
+</script>
