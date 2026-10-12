@@ -20,7 +20,11 @@ export default async function handler(req, res) {
     var date = body && body.date;
     var score = Number(body && body.score);
     var timeSeconds = Number(body && body.timeSeconds);
-    var hasValidTime = Number.isFinite(timeSeconds) && timeSeconds >= 0 && timeSeconds <= 1000;
+    // a floor of 1s filters out the most obviously fabricated submissions (nobody
+    // reads and answers 4 questions in under a second); this is a light sanity
+    // check, not real anti-cheat — the question bank is public client-side code,
+    // so a determined visitor could always fake a plausible-looking request
+    var hasValidTime = Number.isFinite(timeSeconds) && timeSeconds >= 1 && timeSeconds <= 1000;
 
     if (typeof date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isInteger(score) || score < 0 || score > 4) {
       res.status(400).json({ error: "Invalid date or score" });
@@ -38,6 +42,10 @@ export default async function handler(req, res) {
     var scoreKey = "actle:scores:" + date;
     var r = await fetch(url + "/hincrby/" + encodeURIComponent(scoreKey) + "/" + score + "/1", { headers: headers });
     if (!r.ok) throw new Error("storage request failed");
+
+    // record which days have any data, so /api/admin-stats can list them without
+    // having to guess or scan every possible date
+    try { await fetch(url + "/sadd/actle:days/" + encodeURIComponent(date), { headers: headers }); } catch (e) {}
 
     if (hasValidTime) {
       var timeKey = "actle:times:" + date;
