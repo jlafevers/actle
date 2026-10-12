@@ -1,3 +1,8 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ACTLE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;0,9..144,900;1,9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
@@ -52,6 +57,7 @@
   }
 
   * { box-sizing: border-box; }
+  html, body { width: 100%; max-width: 100%; overflow-x: hidden; }
   body {
     margin: 0;
     background:
@@ -63,7 +69,7 @@
     display: flex;
     justify-content: center;
   }
-  .wrap { width: 100%; max-width: 640px; padding-block: 36px 48px; }
+  .wrap { width: 100%; max-width: 640px; min-width: 0; padding-block: 36px 48px; }
 
   .masthead {
     display: flex;
@@ -76,7 +82,7 @@
   .masthead .name {
     font-family: "Fraunces", Georgia, serif;
     font-weight: 900;
-    font-size: clamp(28px, 6vw, 38px);
+    font-size: clamp(28px, 8vw, 38px);
     letter-spacing: -0.01em;
   }
   .masthead .meta {
@@ -94,8 +100,9 @@
     border-radius: 14px;
     box-shadow: var(--shadow);
     padding: 28px;
+    min-width: 0;
   }
-  @media (max-width: 480px) { .card { padding: 20px 16px; } }
+  @media (max-width: 480px) { .card { padding: 18px 14px; } }
 
   /* ---------- start screen ---------- */
   .start-copy { font-size: 16px; line-height: 1.55; color: var(--ink-dim); max-width: 50ch; }
@@ -203,7 +210,7 @@
   .q-prompt {
     font-family: "Fraunces", Georgia, serif;
     font-weight: 600;
-    font-size: clamp(19px, 4vw, 23px);
+    font-size: clamp(18px, 5vw, 23px);
     line-height: 1.35;
     margin-bottom: 4px;
     text-wrap: balance;
@@ -217,10 +224,10 @@
     margin: 14px 0 18px;
     font-style: italic;
   }
+  .q-table-wrap { overflow-x: auto; margin: 14px 0 18px; }
   .q-table {
     width: 100%;
     border-collapse: collapse;
-    margin: 14px 0 18px;
     font-family: "IBM Plex Mono", monospace;
     font-size: 13px;
   }
@@ -229,6 +236,7 @@
     padding: 6px 10px;
     text-align: center;
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
   .q-table th { color: var(--ink-dim); font-weight: 500; }
 
@@ -277,13 +285,13 @@
   .score-big {
     font-family: "Fraunces", Georgia, serif;
     font-weight: 900;
-    font-size: clamp(46px, 11vw, 64px);
+    font-size: clamp(46px, 14vw, 64px);
     line-height: 1;
   }
   .score-label { font-family: "IBM Plex Mono", monospace; font-size: 13px; color: var(--ink-dim); letter-spacing: 0.04em; text-transform: uppercase; }
   .score-verdict { font-size: 16px; color: var(--ink-dim); margin-bottom: 24px; }
 
-  .breakdown { display: flex; flex-direction: column; gap: 0; margin-bottom: 26px; border-top: 1px solid var(--border); }
+  .breakdown { display: flex; flex-direction: column; gap: 0; margin-bottom: 8px; border-top: 1px solid var(--border); }
   .b-row {
     display: flex; align-items: center; gap: 12px;
     padding: 11px 0;
@@ -296,6 +304,28 @@
   .b-row .b-mark.correct { color: var(--correct); }
   .b-row .b-mark.incorrect { color: var(--incorrect); }
 
+  /* ---------- today's players ---------- */
+  .compare { margin: 26px 0 24px; border-top: 1px solid var(--border); padding-top: 20px; }
+  .compare-title {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 700;
+    font-size: 17px;
+    margin-bottom: 12px;
+  }
+  .percentile-line { font-size: 15px; margin-bottom: 4px; }
+  .percentile-line b { color: var(--accent); }
+  .compare-sub { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--ink-dim); }
+  .compare-note { font-size: 13px; color: var(--ink-dim); line-height: 1.5; }
+  .bars { display: flex; align-items: flex-end; gap: 10px; height: 110px; margin-top: 16px; padding: 0 2px; }
+  .bar-col { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 6px; }
+  .bar-count { font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--ink-dim); }
+  .bar-col.mine .bar-count { color: var(--accent); font-weight: 600; }
+  .bar-track { width: 100%; max-width: 44px; flex: 1; display: flex; align-items: flex-end; }
+  .bar-fill { width: 100%; border-radius: 6px 6px 2px 2px; background: var(--border); }
+  .bar-fill.mine { background: var(--accent); }
+  .bar-label { font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--ink-dim); font-weight: 600; }
+  .bar-col.mine .bar-label { color: var(--accent); }
+
   .copy-note { font-size: 12.5px; color: var(--ink-dim); }
 
   [hidden] { display: none !important; }
@@ -304,6 +334,9 @@
     @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
   }
 </style>
+</head>
+<body>
+
 
 <div class="wrap">
   <div class="masthead">
@@ -324,269 +357,389 @@
 
   var POOLS = {
     Math: [
-      {
-        prompt: "If 3x − 7 = 2x + 5, what is x?",
-        options: ["−12", "2/5", "5", "12"],
-        correct: 3,
-        explain: "Subtract 2x from both sides to get x − 7 = 5, then add 7: x = 12."
-      },
-      {
-        prompt: "Solve for x: 5(x − 2) = 3x + 4",
-        options: ["3", "5", "7", "10"],
-        correct: 2,
-        explain: "Distribute to get 5x − 10 = 3x + 4, then combine like terms: 2x = 14, so x = 7."
-      },
-      {
-        prompt: "What is 15% of 240?",
-        options: ["24", "30", "36", "40"],
-        correct: 2,
-        explain: "15% of 240 = 0.15 × 240 = 36."
-      },
-      {
-        prompt: "A rectangle has a length of 9 and a width of 4. What is its perimeter?",
-        options: ["13", "26", "36", "40"],
-        correct: 1,
-        explain: "Perimeter = 2(length + width) = 2(9 + 4) = 26."
-      },
-      {
-        prompt: "If f(x) = 2x² − 3, what is f(3)?",
-        options: ["9", "12", "15", "18"],
-        correct: 2,
-        explain: "f(3) = 2(3)² − 3 = 2(9) − 3 = 15."
-      },
-      {
-        prompt: "What is the slope of the line through (2, 3) and (6, 11)?",
-        options: ["1", "2", "4", "8"],
-        correct: 1,
-        explain: "Slope = (11 − 3) / (6 − 2) = 8/4 = 2."
-      },
-      {
-        prompt: "Simplify: x³ × x²",
-        options: ["x⁵", "x⁶", "x", "x¹⁰"],
-        correct: 0,
-        explain: "When multiplying powers with the same base, add the exponents: 3 + 2 = 5, so x³ × x² = x⁵."
-      }
+      { prompt: "If 3x − 7 = 2x + 5, what is x?", options: ["−12", "2/5", "5", "12"], correct: 3,
+        explain: "Subtract 2x from both sides to get x − 7 = 5, then add 7: x = 12." },
+      { prompt: "Solve for x: 5(x − 2) = 3x + 4", options: ["3", "5", "7", "10"], correct: 2,
+        explain: "Distribute to get 5x − 10 = 3x + 4, then combine like terms: 2x = 14, so x = 7." },
+      { prompt: "What is 15% of 240?", options: ["24", "30", "36", "40"], correct: 2,
+        explain: "15% of 240 = 0.15 × 240 = 36." },
+      { prompt: "A rectangle has a length of 9 and a width of 4. What is its perimeter?", options: ["13", "26", "36", "40"], correct: 1,
+        explain: "Perimeter = 2(length + width) = 2(9 + 4) = 26." },
+      { prompt: "If f(x) = 2x² − 3, what is f(3)?", options: ["9", "12", "15", "18"], correct: 2,
+        explain: "f(3) = 2(3)² − 3 = 2(9) − 3 = 15." },
+      { prompt: "What is the slope of the line through (2, 3) and (6, 11)?", options: ["1", "2", "4", "8"], correct: 1,
+        explain: "Slope = (11 − 3) / (6 − 2) = 8/4 = 2." },
+      { prompt: "Simplify: x³ × x²", options: ["x⁵", "x⁶", "x", "x¹⁰"], correct: 0,
+        explain: "When multiplying powers with the same base, add the exponents: 3 + 2 = 5, so x³ × x² = x⁵." },
+      { prompt: "Solve for x: 2(x + 3) = 4x − 2", options: ["2", "3", "4", "6"], correct: 2,
+        explain: "Distribute: 2x + 6 = 4x − 2, so 8 = 2x, and x = 4." },
+      { prompt: "What is the value of 7² − 3²?", options: ["28", "34", "40", "46"], correct: 2,
+        explain: "7² − 3² = 49 − 9 = 40." },
+      { prompt: "A bag has 5 red and 7 blue marbles. What fraction of the marbles are red?", options: ["5/12", "7/12", "5/7", "1/2"], correct: 0,
+        explain: "There are 12 marbles total, 5 of them red, so the fraction is 5/12." },
+      { prompt: "If y = 3x + 1 and x = 4, what is y?", options: ["10", "12", "13", "14"], correct: 2,
+        explain: "y = 3(4) + 1 = 12 + 1 = 13." },
+      { prompt: "What is the least common multiple of 4 and 6?", options: ["10", "12", "18", "24"], correct: 1,
+        explain: "Multiples of 4: 4, 8, 12… Multiples of 6: 6, 12… The smallest shared multiple is 12." },
+      { prompt: "A triangle has angles of 40° and 65°. What is the third angle?", options: ["65°", "70°", "75°", "80°"], correct: 2,
+        explain: "A triangle's angles sum to 180°, so the third angle is 180 − 40 − 65 = 75°." },
+      { prompt: "Simplify: (2x)(3x²)", options: ["5x³", "6x²", "6x³", "6x"], correct: 2,
+        explain: "Multiply coefficients (2×3=6) and add exponents (1+2=3): 6x³." },
+      { prompt: "What is 7/8 as a decimal, rounded to the nearest hundredth?", options: ["0.78", "0.85", "0.88", "0.90"], correct: 2,
+        explain: "7 ÷ 8 = 0.875, which rounds to 0.88." },
+      { prompt: "A car travels 180 miles in 3 hours. What is its average speed?", options: ["45 mph", "55 mph", "60 mph", "65 mph"], correct: 2,
+        explain: "Speed = distance ÷ time = 180 ÷ 3 = 60 mph." },
+      { prompt: "What is the median of: 4, 9, 2, 11, 7?", options: ["4", "7", "9", "11"], correct: 1,
+        explain: "Sorted, the values are 2, 4, 7, 9, 11 — the middle value is 7." },
+      { prompt: "Solve for x: x/3 + 5 = 9", options: ["4", "9", "12", "27"], correct: 2,
+        explain: "Subtract 5: x/3 = 4. Multiply by 3: x = 12." },
+      { prompt: "A square has an area of 49. What is its perimeter?", options: ["14", "21", "28", "49"], correct: 2,
+        explain: "The side length is √49 = 7, so the perimeter is 4 × 7 = 28." },
+      { prompt: "What is 20% of 85?", options: ["15", "17", "20", "25"], correct: 1,
+        explain: "20% of 85 = 0.2 × 85 = 17." },
+      { prompt: "If 2^x = 32, what is x?", options: ["4", "5", "6", "16"], correct: 1,
+        explain: "2⁵ = 32, so x = 5." },
+      { prompt: "Simplify: 5x − (2x − 7)", options: ["3x − 7", "3x + 7", "7x − 7", "7x + 7"], correct: 1,
+        explain: "Distribute the negative: 5x − 2x + 7 = 3x + 7." },
+      { prompt: "Two numbers have a sum of 24 and a difference of 6. What is the larger number?", options: ["12", "15", "18", "21"], correct: 1,
+        explain: "15 + 9 = 24 and 15 − 9 = 6, so the larger number is 15." },
+      { prompt: "What is the volume of a cube with side length 3?", options: ["9", "18", "27", "81"], correct: 2,
+        explain: "Volume = side³ = 3³ = 27." },
+      { prompt: "If f(x) = x² + 2x, what is f(−3)?", options: ["−3", "3", "9", "15"], correct: 1,
+        explain: "f(−3) = (−3)² + 2(−3) = 9 − 6 = 3." },
+      { prompt: "Convert 3/4 to a percent.", options: ["34%", "65%", "75%", "80%"], correct: 2,
+        explain: "3/4 = 0.75 = 75%." },
+      { prompt: "A rectangle's length is twice its width. If the width is 6, what is the area?", options: ["36", "48", "72", "96"], correct: 2,
+        explain: "Length = 12, so area = 12 × 6 = 72." },
+      { prompt: "Solve for x: 4x + 9 = x + 21", options: ["3", "4", "5", "12"], correct: 1,
+        explain: "Subtract x and 9: 3x = 12, so x = 4." },
+      { prompt: "What is the greatest common factor of 18 and 24?", options: ["2", "3", "6", "9"], correct: 2,
+        explain: "18 = 2×3² and 24 = 2³×3; the shared factors give a GCF of 6." },
+      { prompt: "A $40 shirt is discounted 25%. What is the sale price?", options: ["$25", "$30", "$32", "$35"], correct: 1,
+        explain: "25% of 40 is 10, so the sale price is 40 − 10 = $30." },
+      { prompt: "What is the sum of the interior angles of a hexagon?", options: ["540°", "630°", "720°", "900°"], correct: 2,
+        explain: "Interior angle sum = (n − 2) × 180° = (6 − 2) × 180° = 720°." }
     ],
     English: [
-      {
-        prompt: "Which sentence is correctly worded?",
-        options: [
-          "Neither of the students were ready for the exam.",
-          "Neither of the students was ready for the exam.",
-          "Neither of the students are ready for the exam.",
-          "Neither of the student's was ready for the exam."
-        ],
-        correct: 1,
-        explain: "“Neither” is singular, so it takes the singular verb “was,” regardless of the plural noun that follows “of.”"
-      },
-      {
-        prompt: "Which sentence uses apostrophes correctly?",
-        options: [
-          "Its important to proofread you're work before submitting it.",
-          "It's important to proofread your work before submitting it.",
-          "It's important to proofread you're work before submitting it.",
-          "Its important to proofread your work before submitting it."
-        ],
-        correct: 1,
-        explain: "“It's” is the contraction of “it is,” and “your” is the possessive needed before “work.”"
-      },
-      {
-        prompt: "Which sentence has correct subject-verb agreement?",
-        options: [
-          "The list of items are on the desk.",
-          "The list of items is on the desk.",
-          "The list of items were on the desk.",
-          "The list of items be on the desk."
-        ],
-        correct: 1,
-        explain: "The subject is “list” (singular); “of items” is a prepositional phrase that doesn’t change the verb."
-      },
-      {
-        prompt: "Which version punctuates the introductory phrase correctly?",
-        options: [
-          "After the meeting Sarah, left early.",
-          "After the meeting, Sarah left early.",
-          "After, the meeting Sarah left early.",
-          "After the meeting Sarah left, early."
-        ],
-        correct: 1,
-        explain: "A comma follows an introductory phrase, setting it off from the main clause that begins with the subject."
-      },
-      {
-        prompt: "Choose the best word: “The committee could not decide ___ proposal to approve.”",
-        options: ["who's", "whose", "who", "whom"],
-        correct: 1,
-        explain: "“Whose” shows possession (“whose proposal”), unlike “who's,” which means “who is.”"
-      },
-      {
-        prompt: "Which sentence avoids a dangling modifier?",
-        options: [
-          "Walking to school, the rain started to fall.",
-          "Walking to school, I got caught in the rain.",
-          "The rain started to fall, walking to school.",
-          "Walking to school started the rain falling."
-        ],
-        correct: 1,
-        explain: "The modifier “walking to school” must describe the subject right after it — “I,” not “the rain.”"
-      },
-      {
-        prompt: "Which shows the correct plural possessive?",
-        options: [
-          "The childrens' toys were scattered everywhere.",
-          "The children's toys were scattered everywhere.",
-          "The childrens toy's were scattered everywhere.",
-          "The children toys' were scattered everywhere."
-        ],
-        correct: 1,
-        explain: "“Children” is already plural, so its possessive simply adds ’s: “children's.”"
-      }
+      { prompt: "Which sentence is correctly worded?", options: [
+          "Neither of the students were ready for the exam.", "Neither of the students was ready for the exam.",
+          "Neither of the students are ready for the exam.", "Neither of the student's was ready for the exam." ], correct: 1,
+        explain: "“Neither” is singular, so it takes the singular verb “was,” regardless of the plural noun that follows “of.”" },
+      { prompt: "Which sentence uses apostrophes correctly?", options: [
+          "Its important to proofread you're work before submitting it.", "It's important to proofread your work before submitting it.",
+          "It's important to proofread you're work before submitting it.", "Its important to proofread your work before submitting it." ], correct: 1,
+        explain: "“It's” is the contraction of “it is,” and “your” is the possessive needed before “work.”" },
+      { prompt: "Which sentence has correct subject-verb agreement?", options: [
+          "The list of items are on the desk.", "The list of items is on the desk.",
+          "The list of items were on the desk.", "The list of items be on the desk." ], correct: 1,
+        explain: "The subject is “list” (singular); “of items” is a prepositional phrase that doesn’t change the verb." },
+      { prompt: "Which version punctuates the introductory phrase correctly?", options: [
+          "After the meeting Sarah, left early.", "After the meeting, Sarah left early.",
+          "After, the meeting Sarah left early.", "After the meeting Sarah left, early." ], correct: 1,
+        explain: "A comma follows an introductory phrase, setting it off from the main clause that begins with the subject." },
+      { prompt: "Choose the best word: “The committee could not decide ___ proposal to approve.”", options: ["who's", "whose", "who", "whom"], correct: 1,
+        explain: "“Whose” shows possession (“whose proposal”), unlike “who's,” which means “who is.”" },
+      { prompt: "Which sentence avoids a dangling modifier?", options: [
+          "Walking to school, the rain started to fall.", "Walking to school, I got caught in the rain.",
+          "The rain started to fall, walking to school.", "Walking to school started the rain falling." ], correct: 1,
+        explain: "The modifier “walking to school” must describe the subject right after it — “I,” not “the rain.”" },
+      { prompt: "Which shows the correct plural possessive?", options: [
+          "The childrens' toys were scattered everywhere.", "The children's toys were scattered everywhere.",
+          "The childrens toy's were scattered everywhere.", "The children toys' were scattered everywhere." ], correct: 1,
+        explain: "“Children” is already plural, so its possessive simply adds ’s: “children's.”" },
+      { prompt: "Choose the correct word: “The effect of the new policy ___ immediate.”", options: ["were", "was", "are", "be"], correct: 1,
+        explain: "The subject “effect” is singular, so it takes the singular verb “was.”" },
+      { prompt: "Choose the correct word: “Between you and ___, I think the plan will work.”", options: ["I", "me", "myself", "mine"], correct: 1,
+        explain: "“Me” is the object of the preposition “between,” so it takes the objective case." },
+      { prompt: "Which sentence punctuates a series correctly?", options: [
+          "I bought eggs, milk, and bread.", "I bought eggs milk, and bread.",
+          "I bought eggs, milk and, bread.", "I bought eggs, milk, and, bread." ], correct: 0,
+        explain: "A comma separates each item in a series, including before “and” (the Oxford comma)." },
+      { prompt: "Choose the correct verb form: “By next year, she ___ her degree.”", options: ["will complete", "will have completed", "completes", "completed"], correct: 1,
+        explain: "The future perfect (“will have completed”) describes an action finished before a future point in time." },
+      { prompt: "Which uses “fewer/less” correctly?", options: [
+          "There are less books on the shelf than before.", "There are fewer books on the shelf than before.",
+          "There are fewer book on the shelf than before.", "There is fewer books on the shelf than before." ], correct: 1,
+        explain: "“Fewer” is for countable nouns like “books”; “less” is for uncountable amounts." },
+      { prompt: "Choose the correctly formed comparative: “This year's harvest was ___ than last year's.”", options: ["more good", "gooder", "better", "best"], correct: 2,
+        explain: "“Good” has an irregular comparative form: “better,” not “more good” or “gooder.”" },
+      { prompt: "Which sentence correctly uses a semicolon?", options: [
+          "The storm passed; the sun came out.", "The storm passed, the sun came out; quickly.",
+          "The storm passed; and the sun came out.", "The storm; passed the sun came out." ], correct: 0,
+        explain: "A semicolon can join two independent clauses that are closely related, without a conjunction." },
+      { prompt: "Choose the correct pronoun: “Each of the players brought ___ own water bottle.”", options: ["their", "his or her", "they're", "there"], correct: 1,
+        explain: "“Each” is singular, so the traditionally correct pronoun is “his or her,” not the plural “their.”" },
+      { prompt: "Which sentence avoids redundancy?", options: [
+          "She returned back to the office.", "She returned to the office.",
+          "She returned back again to the office.", "She returned to the office again back." ], correct: 1,
+        explain: "“Returned back” repeats the same idea twice; “returned” alone is sufficient." },
+      { prompt: "Which sentence places the modifier correctly?", options: [
+          "I only ate a sandwich for lunch.", "I ate only a sandwich for lunch.",
+          "Only I ate a sandwich for lunch.", "I ate a sandwich only for lunch." ], correct: 1,
+        explain: "“Only” should sit next to what it limits — “a sandwich” — to mean nothing else was eaten." },
+      { prompt: "Choose the correct form: “Of the two plans, this one is the ___.”", options: ["better", "best", "more better", "goodest"], correct: 0,
+        explain: "With only two items being compared, the comparative “better” is correct, not the superlative “best.”" },
+      { prompt: "Which sentence correctly uses “whom”?", options: [
+          "Who did you give the book to?", "Whom did you give the book to?",
+          "Who you did give the book to?", "Whom you gave the book to?" ], correct: 1,
+        explain: "“Whom” is the object of the preposition “to,” receiving the action." },
+      { prompt: "Which sentence has parallel structure?", options: [
+          "She likes hiking, to swim, and biking.", "She likes hiking, swimming, and biking.",
+          "She likes to hike, swimming, and to bike.", "She likes hiking, to swim, and to bike." ], correct: 1,
+        explain: "All three items should share the same form; “hiking, swimming, and biking” keeps them parallel." },
+      { prompt: "Which sentence is correctly worded?", options: [
+          "Your going to need your umbrella.", "You're going to need you're umbrella.",
+          "You're going to need your umbrella.", "Your going to need you're umbrella." ], correct: 2,
+        explain: "“You're” (you are) starts the sentence, and “your” (possessive) correctly modifies “umbrella.”" },
+      { prompt: "Which sentence avoids a comma splice?", options: [
+          "I was tired I went to bed early.", "I was tired, I went to bed early.",
+          "I was tired, so I went to bed early.", "I was tired so, I went to bed early." ], correct: 2,
+        explain: "A comma plus coordinating conjunction (“so”) correctly joins the two independent clauses." },
+      { prompt: "Choose the correct word: “The weather ___ the outcome of the game.”", options: ["affected", "effected", "affective", "effective"], correct: 0,
+        explain: "“Affected” is the verb meaning “influenced”; “effect” is usually the noun." },
+      { prompt: "Choose the correct word: “Each of the applicants ___ required to submit a resume.”", options: ["is", "are", "were", "be"], correct: 0,
+        explain: "“Each” is singular, so it takes the singular verb “is.”" },
+      { prompt: "A lounge is shared by all the teachers at a school. Which shows the correct possessive?", options: [
+          "The teacher's lounge was empty.", "The teachers' lounge was empty.",
+          "The teachers's lounge was empty.", "The teachers lounge' was empty." ], correct: 1,
+        explain: "Since the lounge belongs to multiple teachers, the plural possessive “teachers'” is correct." },
+      { prompt: "Which sentence is correctly worded?", options: [
+          "Me and him went to the store.", "Him and I went to the store.",
+          "He and I went to the store.", "Me and he went to the store." ], correct: 2,
+        explain: "Both pronouns act as the subject, so the subjective case “he and I” is correct." },
+      { prompt: "Which uses “its/it's” correctly?", options: [
+          "The dog wagged it's tail.", "The dog wagged its tail.",
+          "The dog wagged its' tail.", "The dog wagged it tail's." ], correct: 1,
+        explain: "“Its” (no apostrophe) is the possessive form; “it's” means “it is.”" },
+      { prompt: "Which sentence avoids a comma splice?", options: [
+          "The concert was sold out, we bought tickets online instead.", "The concert was sold out; we bought tickets online instead.",
+          "The concert was sold out we bought tickets online instead.", "The concert was sold out, so, we bought tickets online instead." ], correct: 1,
+        explain: "A semicolon correctly joins the two independent clauses without a comma splice." },
+      { prompt: "Choose the correct transition: “The bridge was closed for repairs; ___, traffic was rerouted downtown.”", options: ["however", "therefore", "for example", "in contrast"], correct: 1,
+        explain: "“Therefore” signals a result, which fits the cause-and-effect relationship here." },
+      { prompt: "Which sentence avoids a dangling modifier?", options: [
+          "Having finished the exam, the room was left by the students.", "Having finished the exam, the students left the room.",
+          "The students, having finished the exam the room was left.", "Having finished the exam the room, students left." ], correct: 1,
+        explain: "The modifier “having finished the exam” correctly describes “the students,” the subject right after it." },
+      { prompt: "Choose the correct word: “The results were better ___ we expected.”", options: ["then", "than", "that", "they"], correct: 1,
+        explain: "“Than” introduces a comparison; “then” refers to time or sequence." }
     ],
     Reading: [
-      {
-        passage: "After three failed harvests, the town’s grain reserves dwindled to almost nothing. When the merchant Elsbeth arrived with a wagon of wheat from the valley, she found she could set almost any price she wished — and did.",
-        prompt: "The passage suggests Elsbeth’s prices were high primarily because:",
-        options: [
-          "She had traveled a long distance to reach the town.",
-          "The town had an urgent, unmet need for grain.",
-          "She was known for dishonest dealing.",
-          "The wheat she carried was of unusually high quality."
-        ],
-        correct: 1,
-        explain: "The passage emphasizes scarcity — three failed harvests, reserves at nothing — as the reason demand, and so price, could run high."
-      },
-      {
-        passage: "The old lighthouse keeper had not seen a ship pass in nineteen days. Still, each evening he climbed the spiral stairs, lit the lamp, and polished the glass until it shone.",
-        prompt: "The keeper’s nightly routine suggests that he:",
-        options: [
-          "believes a ship will eventually come.",
-          "has forgotten how to do anything else.",
-          "is required to do so by law.",
-          "no longer cares whether ships pass."
-        ],
-        correct: 0,
-        explain: "Continuing the ritual despite nineteen empty days implies a quiet faith that a ship will come."
-      },
-      {
-        passage: "Mara had rehearsed her apology for three days, choosing each word with the care of someone defusing a bomb. When she finally knocked on the door, no one answered.",
-        prompt: "The comparison to “defusing a bomb” mainly conveys that Mara:",
-        options: [
-          "was skilled at resolving conflict.",
-          "considered the apology dangerous to get wrong.",
-          "found the door difficult to open.",
-          "was afraid of explosives."
-        ],
-        correct: 1,
-        explain: "The simile emphasizes the care and perceived risk Mara felt, not a literal danger."
-      },
-      {
-        passage: "The orchard had been in the family for four generations, yet it was Teo, the youngest, who finally convinced his grandfather to let the north field go fallow for a season.",
-        prompt: "This detail suggests Teo’s grandfather:",
-        options: [
-          "did not trust Teo’s judgment about farming.",
-          "was initially resistant to changing established practice.",
-          "wanted to sell the north field.",
-          "had let every field go fallow before."
-        ],
-        correct: 1,
-        explain: "“Finally convinced” implies persuasion was needed, pointing to prior resistance."
-      },
-      {
-        passage: "Every winter, the river froze thick enough to walk on, and every winter the town elders warned the children to stay off the ice — warnings the children treated as a dare.",
-        prompt: "The passage implies that the children’s attitude toward the warnings was one of:",
-        options: ["fearful obedience.", "genuine confusion.", "playful defiance.", "complete indifference."],
-        correct: 2,
-        explain: "Treating a warning “as a dare” shows the children were provoked to disobey, not indifferent or afraid."
-      },
-      {
-        passage: "The museum’s newest exhibit displayed the explorer’s journals beside the equipment he’d carried — a compass with a cracked face, a coat worn thin at the elbows.",
-        prompt: "The chosen details about the equipment mainly serve to:",
-        options: [
-          "prove the explorer was poorly prepared.",
-          "suggest how much use and hardship the items endured.",
-          "explain how compasses are made.",
-          "criticize the museum’s curation choices."
-        ],
-        correct: 1,
-        explain: "The wear described — cracked, worn thin — points to extensive use over a difficult journey."
-      },
-      {
-        passage: "Every email from the new manager ended with the same line: ‘Let me know if anything is unclear.’ After a month, no one had ever taken her up on it.",
-        prompt: "This detail most strongly suggests that the employees:",
-        options: [
-          "found her instructions perfectly clear every time.",
-          "were hesitant to ask her questions.",
-          "did not read her emails.",
-          "preferred to email each other instead."
-        ],
-        correct: 1,
-        explain: "The offer going unused for a full month, across many emails, points to reluctance rather than certainty."
-      }
+      { passage: "After three failed harvests, the town’s grain reserves dwindled to almost nothing. When the merchant Elsbeth arrived with a wagon of wheat from the valley, she found she could set almost any price she wished — and did.",
+        prompt: "The passage suggests Elsbeth’s prices were high primarily because:", options: [
+          "She had traveled a long distance to reach the town.", "The town had an urgent, unmet need for grain.",
+          "She was known for dishonest dealing.", "The wheat she carried was of unusually high quality." ], correct: 1,
+        explain: "The passage emphasizes scarcity — three failed harvests, reserves at nothing — as the reason demand, and so price, could run high." },
+      { passage: "The old lighthouse keeper had not seen a ship pass in nineteen days. Still, each evening he climbed the spiral stairs, lit the lamp, and polished the glass until it shone.",
+        prompt: "The keeper’s nightly routine suggests that he:", options: [
+          "believes a ship will eventually come.", "has forgotten how to do anything else.",
+          "is required to do so by law.", "no longer cares whether ships pass." ], correct: 0,
+        explain: "Continuing the ritual despite nineteen empty days implies a quiet faith that a ship will come." },
+      { passage: "Mara had rehearsed her apology for three days, choosing each word with the care of someone defusing a bomb. When she finally knocked on the door, no one answered.",
+        prompt: "The comparison to “defusing a bomb” mainly conveys that Mara:", options: [
+          "was skilled at resolving conflict.", "considered the apology dangerous to get wrong.",
+          "found the door difficult to open.", "was afraid of explosives." ], correct: 1,
+        explain: "The simile emphasizes the care and perceived risk Mara felt, not a literal danger." },
+      { passage: "The orchard had been in the family for four generations, yet it was Teo, the youngest, who finally convinced his grandfather to let the north field go fallow for a season.",
+        prompt: "This detail suggests Teo’s grandfather:", options: [
+          "did not trust Teo’s judgment about farming.", "was initially resistant to changing established practice.",
+          "wanted to sell the north field.", "had let every field go fallow before." ], correct: 1,
+        explain: "“Finally convinced” implies persuasion was needed, pointing to prior resistance." },
+      { passage: "Every winter, the river froze thick enough to walk on, and every winter the town elders warned the children to stay off the ice — warnings the children treated as a dare.",
+        prompt: "The passage implies that the children’s attitude toward the warnings was one of:", options: ["fearful obedience.", "genuine confusion.", "playful defiance.", "complete indifference."], correct: 2,
+        explain: "Treating a warning “as a dare” shows the children were provoked to disobey, not indifferent or afraid." },
+      { passage: "The museum’s newest exhibit displayed the explorer’s journals beside the equipment he’d carried — a compass with a cracked face, a coat worn thin at the elbows.",
+        prompt: "The chosen details about the equipment mainly serve to:", options: [
+          "prove the explorer was poorly prepared.", "suggest how much use and hardship the items endured.",
+          "explain how compasses are made.", "criticize the museum’s curation choices." ], correct: 1,
+        explain: "The wear described — cracked, worn thin — points to extensive use over a difficult journey." },
+      { passage: "Every email from the new manager ended with the same line: ‘Let me know if anything is unclear.’ After a month, no one had ever taken her up on it.",
+        prompt: "This detail most strongly suggests that the employees:", options: [
+          "found her instructions perfectly clear every time.", "were hesitant to ask her questions.",
+          "did not read her emails.", "preferred to email each other instead." ], correct: 1,
+        explain: "The offer going unused for a full month, across many emails, points to reluctance rather than certainty." },
+      { passage: "The chess club had met every Thursday for a decade, but when the new coach proposed moving practice to Mondays, three of the oldest members quit within the week.",
+        prompt: "This detail most strongly suggests that the members who quit:", options: [
+          "disliked chess.", "valued the tradition of the schedule more than the game itself.",
+          "had Monday conflicts.", "wanted a different coach." ], correct: 1,
+        explain: "Quitting over a schedule change, not the game itself, suggests the tradition mattered more than chess." },
+      { passage: "The baker arrived at four each morning, long before the town stirred, and by the time the first customer entered, the shelves were already half empty from deliveries made to hotels across the river.",
+        prompt: "This passage suggests that the bakery's business depends significantly on:", options: [
+          "walk-in customers.", "wholesale deliveries.", "online orders.", "evening sales." ], correct: 1,
+        explain: "Half the shelves are already gone to hotel deliveries before the first walk-in customer arrives." },
+      { passage: "Despite owning the patent for over a decade, the inventor never built the device herself; she sold the rights to a company that promised, and then failed, to bring it to market.",
+        prompt: "The passage implies that the inventor's choice to sell the rights:", options: [
+          "guaranteed the device would be built.", "did not guarantee the device would be built.",
+          "was illegal.", "doubled her profits." ], correct: 1,
+        explain: "The company “promised, and then failed,” showing that selling the rights was no guarantee." },
+      { passage: "The hikers had packed for a two-day trip, but the trail closure sign at the summit meant retracing six extra miles before nightfall.",
+        prompt: "The passage implies that the hikers' situation became:", options: ["easier than planned.", "more demanding than planned.", "unchanged.", "shorter than planned."], correct: 1,
+        explain: "Six extra miles before nightfall, unplanned, makes the trip more demanding than intended." },
+      { passage: "Theo's grandmother repeated the same four recipes every holiday for thirty years, insisting that a fifth would 'break the magic.'",
+        prompt: "This detail mainly suggests that the grandmother viewed the recipes as:", options: ["outdated.", "a ritual worth preserving exactly.", "open to experimentation.", "unimportant."], correct: 1,
+        explain: "Refusing even a fifth recipe for thirty years shows she treated the set as a fixed, meaningful ritual." },
+      { passage: "The startup's first product failed within months, but the founders kept the whiteboard sketches from that version taped above their desks for the next five years.",
+        prompt: "Keeping the sketches visible suggests the founders:", options: [
+          "were embarrassed by the failure.", "wanted to forget the first product.",
+          "treated the failure as something worth remembering.", "planned to rebuild the same product." ], correct: 2,
+        explain: "Displaying the sketches for five years shows they chose to remember the failure, not hide it." },
+      { passage: "Every letter the soldier sent home described the weather and nothing else, yet his sister read each one three times before folding it away.",
+        prompt: "The sister's behavior suggests that she:", options: [
+          "found the letters boring.", "valued the letters beyond their literal content.",
+          "was confused by the letters.", "preferred longer letters." ], correct: 1,
+        explain: "Reading plain weather reports three times shows she valued them for more than their literal words." },
+      { passage: "The committee debated the budget for six hours, yet the final vote passed in under a minute, with no discussion at all.",
+        prompt: "This contrast mainly suggests that by the time of the vote, the committee members:", options: [
+          "had already reached agreement.", "were still deeply divided.",
+          "had forgotten the topic.", "wanted to delay further." ], correct: 0,
+        explain: "A fast, discussion-free vote after a long debate suggests agreement had already been reached." },
+      { passage: "The shop had sold typewriters for sixty years. When the owner's grandson took over, the front window still displayed the same model from 1962 — now beside a hand-written sign reading 'We repair laptops too.'",
+        prompt: "The new sign mainly suggests that the shop is:", options: [
+          "closing permanently.", "adapting while keeping its history visible.",
+          "abandoning its old identity entirely.", "only repairing typewriters now." ], correct: 1,
+        explain: "Keeping the old typewriter display while adding a laptop-repair sign shows the shop adapting without erasing its past." },
+      { passage: "Every runner in the race had trained for months, but only Priya checked the weather forecast the night before and packed a second pair of shoes.",
+        prompt: "This detail about Priya suggests she was especially:", options: ["overconfident.", "prepared for uncertainty.", "inexperienced.", "careless."], correct: 1,
+        explain: "Checking the forecast and packing a backup shows preparation for conditions that might change." },
+      { passage: "The village had no doctor, so when the traveling physician arrived twice a year, the line outside her tent began forming before sunrise.",
+        prompt: "The length and timing of the line suggests that the physician's visits were:", options: ["unwelcome.", "rare and highly valued.", "frequent and routine.", "unnecessary."], correct: 1,
+        explain: "Lines forming before sunrise for a twice-yearly visit show the visits were rare and in high demand." },
+      { passage: "The museum guard had walked the same three rooms every night for twenty years. He could describe each painting with his eyes closed, yet he still paused at the same spot each night to look.",
+        prompt: "The guard's nightly pause suggests that, despite familiarity, the paintings still:", options: ["bored him.", "held his genuine interest.", "were invisible to him.", "changed every night."], correct: 1,
+        explain: "Pausing to look night after night, despite total familiarity, shows ongoing genuine interest." },
+      { passage: "The company's new policy allowed employees to work from anywhere, but attendance at the Tuesday morning meeting — held only in person — was still required.",
+        prompt: "This detail suggests the Tuesday meeting was considered:", options: ["unimportant to leadership.", "important enough to require physical presence.", "optional for most employees.", "about to be cancelled."], correct: 1,
+        explain: "Requiring in-person attendance despite a remote-friendly policy shows the meeting was considered especially important." },
+      { passage: "The gardener had been warned the soil was too rocky for roses, but she planted them anyway, hauling out stones by hand for three straight weekends.",
+        prompt: "This passage mainly illustrates the gardener's:", options: ["carelessness.", "determination.", "indifference to the roses.", "regret."], correct: 1,
+        explain: "Three weekends of hand-hauling stones despite a warning shows determination, not carelessness." },
+      { passage: "The orchestra's conductor rehearsed the final movement eleven times, though the musicians had already played it perfectly by the fourth.",
+        prompt: "This detail suggests the conductor was primarily seeking:", options: ["technical correctness alone.", "something beyond mere accuracy.", "to punish the musicians.", "to shorten the rehearsal."], correct: 1,
+        explain: "Continuing well past the point of technical accuracy suggests the conductor wanted something more than correctness." },
+      { passage: "The fishermen stopped checking the old lighthouse log the year GPS became standard on every boat, though the logbook itself was never thrown away.",
+        prompt: "Keeping the logbook despite disuse suggests the fishermen:", options: ["still relied on it daily.", "felt some attachment to it beyond its practical use.", "planned to sell it.", "found GPS unreliable."], correct: 1,
+        explain: "Keeping an unused logbook rather than discarding it suggests an attachment beyond its practical use." },
+      { passage: "The professor's office hours were technically one hour a week, but students often found her door open two or three hours past the posted time.",
+        prompt: "This detail suggests the professor was:", options: ["strict about her schedule.", "more generous with her time than required.", "frequently absent.", "uninterested in students."], correct: 1,
+        explain: "Staying hours past the posted time shows generosity beyond what was formally required." },
+      { passage: "The recipe had been passed down for four generations, always handwritten, never typed — even after the family opened a restaurant with a full printed menu.",
+        prompt: "The choice to keep the recipe handwritten suggests the family valued:", options: ["efficiency above all else.", "a personal connection to its origin.", "secrecy from customers.", "modern technology."], correct: 1,
+        explain: "Keeping it handwritten even after printing a full menu suggests a personal connection mattered more than convenience." },
+      { passage: "The astronomer spent eleven years cataloguing a single patch of sky, even after colleagues suggested broader surveys would advance her career faster.",
+        prompt: "This passage suggests the astronomer was motivated primarily by:", options: ["career advancement.", "a specific scientific curiosity.", "peer pressure.", "financial reward."], correct: 1,
+        explain: "Ignoring career-focused advice to keep studying one patch of sky points to genuine scientific curiosity." },
+      { passage: "The old bridge had been condemned for a decade, yet townspeople still walked across it rather than take the mile-long detour the new road required.",
+        prompt: "This detail mainly suggests that for the townspeople, the bridge's:", options: ["danger outweighed its convenience.", "convenience outweighed concerns about its condition.", "condition had actually improved.", "location had changed."], correct: 1,
+        explain: "Choosing the condemned bridge over a mile-long detour shows convenience winning out over safety concerns." },
+      { passage: "The tailor measured each customer twice, even regular customers he had fitted dozens of times before.",
+        prompt: "This habit suggests the tailor valued:", options: ["speed over accuracy.", "precision over assumption.", "customer flattery.", "minimizing his workload."], correct: 1,
+        explain: "Re-measuring even familiar customers shows he valued precision over assuming nothing had changed." },
+      { passage: "The small press had rejected the manuscript twice before finally publishing it — and it went on to outsell every other title the press had released that decade.",
+        prompt: "This passage mainly illustrates that:", options: ["the press's judgment was always correct.", "early rejection does not necessarily predict a work's eventual success.", "the manuscript was poorly written.", "the press regretted publishing it."], correct: 1,
+        explain: "A twice-rejected manuscript becoming the decade's best-seller shows rejection doesn't predict eventual success." },
+      { passage: "The night-shift nurse kept a small notebook of every patient's favorite song, long after hospital policy stopped requiring personal notes in patient files.",
+        prompt: "Keeping the notebook despite the policy change suggests the nurse:", options: ["disliked the new policy intensely.", "valued a personal touch beyond what was required.", "wanted to be reprimanded.", "forgot to stop the habit."], correct: 1,
+        explain: "Continuing a personal habit no longer required by policy shows she valued that personal touch for its own sake." },
+      { passage: "The carpenter refused to use power tools on the chapel's altar, even though the rest of the building had been finished in half the time with them.",
+        prompt: "This detail mainly suggests that for the carpenter, the altar held:", options: ["less importance than the rest of the building.", "a significance that called for a different approach.", "no particular significance.", "the same importance as any other piece."], correct: 1,
+        explain: "Treating the altar differently from a building finished twice as fast elsewhere shows it held special significance." }
     ],
     Science: [
-      {
-        table: { headers: ["Depth (m)", "0", "10", "20", "30", "40"], row: ["Temp (°C)", "22", "21", "15", "8", "6"] },
-        prompt: "Based on the table, between which two depths does temperature drop the most per 10 m?",
-        options: ["0 m–10 m", "10 m–20 m", "20 m–30 m", "30 m–40 m"],
-        correct: 2,
-        explain: "The drops are 1°, 6°, 7°, and 2° respectively — the 20–30 m interval loses the most, 7°C."
-      },
-      {
-        table: { headers: ["Temp (°C)", "10", "20", "30", "40"], row: ["Reaction time (s)", "12", "8", "5", "4"] },
-        prompt: "Based on the table, as temperature increases, reaction time:",
-        options: [
-          "increases steadily.",
-          "decreases, with the rate of decrease slowing at higher temperatures.",
-          "stays the same.",
-          "increases, then decreases."
-        ],
-        correct: 1,
-        explain: "The drops are 4, 3, then 1 second — reaction time keeps falling, but by smaller amounts each step."
-      },
-      {
-        table: { headers: ["pH", "4", "5", "6", "7", "8", "9"], row: ["Colonies", "2", "15", "40", "52", "35", "10"] },
-        prompt: "The data indicate that bacterial growth is greatest near a pH of:",
-        options: ["4", "7", "8", "9"],
-        correct: 1,
-        explain: "The colony count peaks at pH 7, with 52 colonies — higher than any other pH tested."
-      },
-      {
-        table: { headers: ["Light (hr/day)", "6", "9", "12", "15", "18"], row: ["Height (cm)", "8", "14", "19", "21", "20"] },
-        prompt: "Compared to the duration before it, which light duration produced the greatest height gain per added hour of light?",
-        options: ["9 hours", "12 hours", "15 hours", "18 hours"],
-        correct: 1,
-        explain: "From 9 to 12 hours, height rose 5 cm over 3 hours (≈ 1.7 cm/hr) — a faster rate than the other intervals."
-      },
-      {
-        table: { headers: ["Altitude (m)", "0", "1000", "2000", "3000", "4000"], row: ["Pressure (kPa)", "101", "90", "80", "70", "62"] },
-        prompt: "The table shows that atmospheric pressure and altitude have what kind of relationship?",
-        options: [
-          "direct — both increase together.",
-          "inverse — one increases as the other decreases.",
-          "no clear relationship.",
-          "cyclical."
-        ],
-        correct: 1,
-        explain: "As altitude rises, pressure consistently falls — the hallmark of an inverse relationship."
-      },
-      {
-        table: { headers: ["Salt (g/L)", "0", "10", "20", "30", "40"], row: ["Boiling pt (°C)", "100", "100.5", "101", "101.6", "102.2"] },
-        prompt: "Predicting the boiling point at 50 g/L of salt, beyond the data shown, would require:",
-        options: [
-          "extrapolating beyond the given data.",
-          "interpolating within the given data.",
-          "ignoring the trend entirely.",
-          "averaging all given values."
-        ],
-        correct: 0,
-        explain: "50 g/L exceeds the highest value tested (40 g/L), so estimating it means extending the trend beyond the observed range — extrapolation."
-      },
-      {
-        table: { headers: ["Time (min)", "0", "5", "10", "15", "20"], row: ["Temp (°C)", "90", "78", "68", "60", "54"] },
-        prompt: "Based on the data, the rate at which the coffee cools is:",
-        options: ["constant throughout.", "slowing over time.", "speeding up over time.", "impossible to determine."],
-        correct: 1,
-        explain: "The drops are 12°, 10°, 8°, then 6° — the cooling rate keeps shrinking, so it is slowing over time."
-      }
+      { table: { headers: ["Depth (m)", "0", "10", "20", "30", "40"], row: ["Temp (°C)", "22", "21", "15", "8", "6"] },
+        prompt: "Based on the table, between which two depths does temperature drop the most per 10 m?", options: ["0 m–10 m", "10 m–20 m", "20 m–30 m", "30 m–40 m"], correct: 2,
+        explain: "The drops are 1°, 6°, 7°, and 2° respectively — the 20–30 m interval loses the most, 7°C." },
+      { table: { headers: ["Temp (°C)", "10", "20", "30", "40"], row: ["Reaction time (s)", "12", "8", "5", "4"] },
+        prompt: "Based on the table, as temperature increases, reaction time:", options: ["increases steadily.", "decreases, with the rate of decrease slowing at higher temperatures.", "stays the same.", "increases, then decreases."], correct: 1,
+        explain: "The drops are 4, 3, then 1 second — reaction time keeps falling, but by smaller amounts each step." },
+      { table: { headers: ["pH", "4", "5", "6", "7", "8", "9"], row: ["Colonies", "2", "15", "40", "52", "35", "10"] },
+        prompt: "The data indicate that bacterial growth is greatest near a pH of:", options: ["4", "7", "8", "9"], correct: 1,
+        explain: "The colony count peaks at pH 7, with 52 colonies — higher than any other pH tested." },
+      { table: { headers: ["Light (hr/day)", "6", "9", "12", "15", "18"], row: ["Height (cm)", "8", "14", "19", "21", "20"] },
+        prompt: "Compared to the duration before it, which light duration produced the greatest height gain per added hour of light?", options: ["9 hours", "12 hours", "15 hours", "18 hours"], correct: 1,
+        explain: "From 9 to 12 hours, height rose 5 cm over 3 hours (≈ 1.7 cm/hr) — a faster rate than the other intervals." },
+      { table: { headers: ["Altitude (m)", "0", "1000", "2000", "3000", "4000"], row: ["Pressure (kPa)", "101", "90", "80", "70", "62"] },
+        prompt: "The table shows that atmospheric pressure and altitude have what kind of relationship?", options: ["direct — both increase together.", "inverse — one increases as the other decreases.", "no clear relationship.", "cyclical."], correct: 1,
+        explain: "As altitude rises, pressure consistently falls — the hallmark of an inverse relationship." },
+      { table: { headers: ["Salt (g/L)", "0", "10", "20", "30", "40"], row: ["Boiling pt (°C)", "100", "100.5", "101", "101.6", "102.2"] },
+        prompt: "Predicting the boiling point at 50 g/L of salt, beyond the data shown, would require:", options: ["extrapolating beyond the given data.", "interpolating within the given data.", "ignoring the trend entirely.", "averaging all given values."], correct: 0,
+        explain: "50 g/L exceeds the highest value tested (40 g/L), so estimating it means extending the trend beyond the observed range — extrapolation." },
+      { table: { headers: ["Time (min)", "0", "5", "10", "15", "20"], row: ["Temp (°C)", "90", "78", "68", "60", "54"] },
+        prompt: "Based on the data, the rate at which the coffee cools is:", options: ["constant throughout.", "slowing over time.", "speeding up over time.", "impossible to determine."], correct: 1,
+        explain: "The drops are 12°, 10°, 8°, then 6° — the cooling rate keeps shrinking, so it is slowing over time." },
+      { table: { headers: ["Time (min)", "0", "10", "20", "30", "40"], row: ["Bacteria count", "100", "200", "400", "800", "1600"] },
+        prompt: "Based on the table, the bacteria population is best described as growing:", options: ["linearly.", "exponentially.", "randomly.", "not at all."], correct: 1,
+        explain: "The count doubles every 10 minutes (100→200→400→800→1600), which is exponential growth." },
+      { table: { headers: ["Mass (kg)", "1", "2", "3", "4", "5"], row: ["Force at 2 m/s² (N)", "2", "4", "6", "8", "10"] },
+        prompt: "Based on the table, force and mass show what kind of relationship (at constant acceleration)?", options: ["direct — force increases proportionally with mass.", "inverse.", "no relationship.", "exponential."], correct: 0,
+        explain: "Force is always exactly twice the mass, a constant ratio — a direct, proportional relationship." },
+      { table: { headers: ["Distance from sun (AU)", "0.4", "0.7", "1.0", "1.5", "5.2"], row: ["Orbital period (yrs)", "0.24", "0.62", "1.0", "1.9", "11.9"] },
+        prompt: "Based on the table, as distance from the sun increases, orbital period:", options: ["decreases.", "increases.", "stays constant.", "changes randomly."], correct: 1,
+        explain: "Orbital period rises steadily alongside distance from the sun, from 0.24 to 11.9 years." },
+      { table: { headers: ["Soil moisture (%)", "20", "30", "40", "50"], row: ["Plant height (cm)", "9", "14", "17", "16"] },
+        prompt: "Based on the data, plant growth is greatest at approximately which soil moisture level?", options: ["20%", "30%", "40%", "50%"], correct: 2,
+        explain: "Height peaks at 40% moisture (17 cm), higher than at 30% or 50%." },
+      { table: { headers: ["Wavelength (nm)", "400", "450", "500", "550", "600"], row: ["Photon energy (rel.)", "3.1", "2.8", "2.5", "2.3", "2.1"] },
+        prompt: "Based on the table, as wavelength increases, photon energy:", options: ["increases.", "decreases.", "stays the same.", "doubles."], correct: 1,
+        explain: "Energy falls steadily as wavelength rises, from 3.1 down to 2.1." },
+      { table: { headers: ["Altitude (km)", "0", "5", "10", "15", "20"], row: ["Temp (°C)", "15", "-15", "-50", "-56", "-56"] },
+        prompt: "Based on the table, between which two altitudes does temperature change the least?", options: ["0–5 km", "5–10 km", "10–15 km", "15–20 km"], correct: 3,
+        explain: "The changes are 30°, 35°, 6°, and 0° — temperature barely changes between 15 and 20 km." },
+      { table: { headers: ["Predators introduced", "0", "2", "4", "6", "8"], row: ["Prey (hundreds)", "50", "42", "30", "20", "12"] },
+        prompt: "The data suggest that as predator number increases, prey population:", options: ["increases.", "decreases.", "is unaffected.", "fluctuates randomly."], correct: 1,
+        explain: "Prey population falls steadily as more predators are introduced, from 50 down to 12." },
+      { table: { headers: ["Soil pH", "4", "5", "6", "7", "8"], row: ["Yield (bu/acre)", "20", "35", "55", "60", "45"] },
+        prompt: "Based on the table, crop yield is highest at a soil pH of about:", options: ["4", "6", "7", "8"], correct: 2,
+        explain: "Yield peaks at pH 7 (60 bu/acre), the highest value in the table." },
+      { table: { headers: ["Current (A)", "1", "2", "3", "4", "5"], row: ["Voltage (V)", "2", "4", "6", "8", "10"] },
+        prompt: "Based on the table, voltage and current show what relationship?", options: ["direct — voltage increases proportionally with current.", "inverse.", "no relationship.", "exponential."], correct: 0,
+        explain: "Voltage is always exactly twice the current, a constant ratio — a direct, proportional relationship." },
+      { table: { headers: ["Time", "6am", "9am", "12pm", "3pm", "6pm"], row: ["Ozone (ppb)", "20", "45", "70", "55", "30"] },
+        prompt: "Based on the data, ozone levels peak closest to:", options: ["6am", "9am", "12pm", "6pm"], correct: 2,
+        explain: "Ozone reaches its highest value, 70 ppb, at 12pm." },
+      { table: { headers: ["Sample", "A", "B", "C", "D", "E"], row: ["Dissolved O₂ (mg/L) / Fish count", "8 / 40", "6 / 32", "4 / 20", "2 / 9", "1 / 3"] },
+        prompt: "The data suggest fish abundance is most strongly related to:", options: ["water temperature.", "dissolved oxygen level.", "sample letter.", "time of day."], correct: 1,
+        explain: "Fish count tracks dissolved oxygen closely — both fall together across samples A through E." },
+      { table: { headers: ["Fertilizer (g/L)", "0", "5", "10", "15", "20"], row: ["Growth (cm/wk)", "2", "4", "6", "7", "5"] },
+        prompt: "Based on the table, plant growth is greatest at a fertilizer concentration of:", options: ["0 g/L", "10 g/L", "15 g/L", "20 g/L"], correct: 2,
+        explain: "Growth peaks at 15 g/L (7 cm/week), higher than at 10 or 20 g/L." },
+      { table: { headers: ["Depth (m)", "0", "200", "1000", "2000", "4000"], row: ["Light (% of surface)", "100", "1", "0", "0", "0"] },
+        prompt: "Based on the table, light available to marine life essentially disappears by a depth of about:", options: ["200 m", "1000 m", "2000 m", "4000 m"], correct: 1,
+        explain: "Light drops to 1% by 200 m and reaches 0% by 1000 m, where it stays for all greater depths." },
+      { table: { headers: ["Year", "2000", "2005", "2010", "2015", "2020"], row: ["Temp anomaly (°C)", "0.2", "0.3", "0.5", "0.6", "0.8"] },
+        prompt: "Based on the table, the trend in temperature anomaly over time is:", options: ["decreasing.", "roughly constant.", "increasing.", "cyclical with no trend."], correct: 2,
+        explain: "The anomaly rises at every interval shown, from 0.2°C to 0.8°C." },
+      { table: { headers: ["Ice mass (g)", "5", "10", "15", "20", "25"], row: ["Melt time (min)", "4", "7", "11", "14", "18"] },
+        prompt: "Based on the data, as the mass of the ice cube increases, melting time:", options: ["decreases.", "increases.", "stays constant.", "is unrelated to mass."], correct: 1,
+        explain: "Melt time rises steadily alongside mass, from 4 to 18 minutes." },
+      { table: { headers: ["Hours after meal", "1", "2", "3", "4", "5"], row: ["Glucose (mg/dL)", "160", "135", "115", "100", "90"] },
+        prompt: "Based on the table, blood glucose after the meal is:", options: ["rising throughout.", "falling, with the rate of decline slowing over time.", "constant.", "falling at a constant rate."], correct: 1,
+        explain: "The drops are 25, 20, 15, then 10 — glucose keeps falling, but increasingly slowly." },
+      { table: { headers: ["Hours studied", "0", "2", "4", "6", "8"], row: ["Test score (%)", "50", "60", "72", "80", "82"] },
+        prompt: "Based on the table, the relationship between study hours and test score is best described as:", options: ["no relationship.", "a steady increase that levels off at higher study hours.", "a steady decrease.", "random fluctuation."], correct: 1,
+        explain: "Score gains shrink from 10 to 12 to 8 to 2 points — rising overall but leveling off." },
+      { table: { headers: ["Planet", "Mercury", "Venus", "Earth", "Mars", "Jupiter"], row: ["Moons", "0", "0", "1", "2", "95"] },
+        prompt: "Based on the table, which statement is best supported?", options: [
+          "All planets have at least one moon.", "The number of moons generally increases with distance from the sun among these planets.",
+          "Venus has the most moons.", "Earth has more moons than Mars." ], correct: 1,
+        explain: "Moon counts broadly rise moving outward from the sun (0, 0, 1, 2, 95), even though Earth and Mars alone don't strictly increase." },
+      { table: { headers: ["Trial (year)", "1", "2", "3", "4", "5"], row: ["Rainwater pH", "5.6", "5.1", "4.8", "4.5", "4.2"] },
+        prompt: "Based on the table, over the five years sampled, the rainwater has become:", options: ["more acidic.", "more basic.", "neutral.", "unchanged."], correct: 0,
+        explain: "pH falls steadily from 5.6 to 4.2, meaning the rainwater has become more acidic." },
+      { table: { headers: ["Exercise (min)", "0", "15", "30", "45", "60"], row: ["Heart rate (bpm)", "70", "110", "130", "140", "142"] },
+        prompt: "Based on the table, as exercise duration increases, heart rate increases:", options: ["at a constant rate throughout.", "quickly at first, then levels off.", "slowly at first, then rises quickly.", "not at all."], correct: 1,
+        explain: "The gains are 40, 20, 10, then 2 bpm — a fast rise early that levels off later." },
+      { table: { headers: ["Sample pH", "3", "5", "7", "9", "11"], row: ["Absorbance", "0.9", "0.6", "0.3", "0.6", "0.9"] },
+        prompt: "Based on the table, absorbance is lowest at approximately pH:", options: ["3", "5", "7", "9"], correct: 2,
+        explain: "Absorbance dips to its minimum, 0.3, at pH 7, then rises again on either side." },
+      { table: { headers: ["Time (s)", "1", "2", "3", "4", "5"], row: ["Distance (m)", "2", "8", "18", "32", "50"] },
+        prompt: "Based on the table, as time increases, the distance traveled:", options: ["increases at a constant rate.", "increases at an increasing rate.", "increases at a decreasing rate.", "stays constant."], correct: 1,
+        explain: "The gains between each second (6, 10, 14, 18 m) keep growing, showing an increasing rate." },
+      { table: { headers: ["Tree age (yrs)", "5", "10", "15", "20", "25"], row: ["Trunk diameter (cm)", "8", "15", "23", "30", "38"] },
+        prompt: "Based on the table, tree age and trunk diameter show what kind of relationship?", options: ["direct — diameter increases as age increases.", "inverse.", "no relationship.", "diameter decreases as age increases."], correct: 0,
+        explain: "Diameter rises steadily alongside age, from 8 cm to 38 cm." },
+      { table: { headers: ["Hrs after sunset", "0", "1", "2", "3", "4"], row: ["Temp (°F)", "75", "68", "62", "58", "56"] },
+        prompt: "Based on the table, as time after sunset increases, temperature drops:", options: ["at a constant rate.", "quickly at first, then more slowly.", "slowly at first, then quickly.", "not at all."], correct: 1,
+        explain: "The drops are 7°, 6°, 4°, then 2° — a quick early fall that slows over time." }
     ]
   };
   var LETTERS = ["A", "B", "C", "D"];
@@ -597,11 +750,6 @@
     var day = ("0" + d.getDate()).slice(-2);
     return d.getFullYear() + "-" + m + "-" + day;
   }
-  function hashStr(s) {
-    var h = 5381;
-    for (var i = 0; i < s.length; i++) h = (((h * 33) ^ s.charCodeAt(i)) >>> 0);
-    return h;
-  }
   function puzzleNumber(dateStr) {
     var parts = dateStr.split("-").map(Number);
     var d = new Date(parts[0], parts[1] - 1, parts[2]);
@@ -609,9 +757,12 @@
     return Math.floor((d - epoch) / 86400000) + 1;
   }
   function buildDaily(dateStr) {
+    // each pool holds one slot per day of the month, so every day gets a
+    // different question in every section, with no repeats within a month
+    var day = parseInt(dateStr.split("-")[2], 10);
     return SECTIONS.map(function (sec) {
       var pool = POOLS[sec];
-      var idx = hashStr(dateStr + "|" + sec) % pool.length;
+      var idx = (day - 1) % pool.length;
       var q = pool[idx];
       return Object.assign({ section: sec }, q);
     });
@@ -675,6 +826,51 @@
       var best = bestScore();
       if (best === null || score > best) localStorage.setItem("actle-best", JSON.stringify(score));
     } catch (e) {}
+  }
+
+  function submittedKey(date) { return "actle-submitted-" + date; }
+  function maybeSubmitScore(date, score) {
+    try {
+      if (localStorage.getItem(submittedKey(date))) return;
+      localStorage.setItem(submittedKey(date), "1");
+    } catch (e) {}
+    fetch("/api/submit-score", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date: date, score: score })
+    }).catch(function () {});
+  }
+  function renderCompare(mount, counts, myScore) {
+    var total = counts.reduce(function (a, b) { return a + b; }, 0);
+    if (total < 1) {
+      mount.innerHTML = '<div class="compare-note">You’re the first to finish today’s ACTLE — check back later to see how others do.</div>';
+      return;
+    }
+    var below = 0;
+    for (var s = 0; s < myScore; s++) below += counts[s];
+    var pct = Math.round((below / total) * 100);
+    var max = Math.max.apply(null, counts.concat([1]));
+    var barsHtml = counts.map(function (c, s) {
+      var h = Math.max(Math.round((c / max) * 100), c > 0 ? 6 : 2);
+      var mine = s === myScore;
+      return '<div class="bar-col' + (mine ? " mine" : "") + '">' +
+        '<span class="bar-count">' + c + '</span>' +
+        '<div class="bar-track"><div class="bar-fill' + (mine ? " mine" : "") + '" style="height:' + h + '%"></div></div>' +
+        '<span class="bar-label">' + s + '/4</span>' +
+        '</div>';
+    }).join("");
+    mount.innerHTML =
+      '<div class="percentile-line">Better than <b>' + pct + '%</b> of today’s players.</div>' +
+      '<div class="compare-sub">' + total + ' ' + (total === 1 ? "player has" : "players have") + ' finished today’s ACTLE.</div>' +
+      '<div class="bars">' + barsHtml + '</div>';
+  }
+  function loadStats(date, mount) {
+    fetch("/api/stats?date=" + encodeURIComponent(date))
+      .then(function (r) { if (!r.ok) throw new Error("bad response"); return r.json(); })
+      .then(function (data) { renderCompare(mount, data.counts || [0,0,0,0,0], loadStats._myScore); })
+      .catch(function () {
+        mount.innerHTML = '<div class="compare-note">Today’s comparison isn’t available right now.</div>';
+      });
   }
 
   function render() {
@@ -750,11 +946,11 @@
     var passageHtml = q.passage ? '<div class="q-passage">' + q.passage + '</div>' : "";
     var tableHtml = "";
     if (q.table) {
-      tableHtml = '<table class="q-table"><thead><tr>' +
+      tableHtml = '<div class="q-table-wrap"><table class="q-table"><thead><tr>' +
         q.table.headers.map(function (h) { return "<th>" + h + "</th>"; }).join("") +
         '</tr></thead><tbody><tr>' +
         q.table.row.map(function (c) { return "<td>" + c + "</td>"; }).join("") +
-        '</tr></tbody></table>';
+        '</tr></tbody></table></div>';
     }
 
     var optionsHtml = q.options.map(function (opt, oi) {
@@ -769,10 +965,6 @@
       return '<button class="' + cls + '" data-i="' + oi + '" ' + dis + '>' +
         '<span class="letter">' + LETTERS[oi] + '</span><span>' + opt + '</span></button>';
     }).join("");
-
-    var timerHtml = answered ? "" :
-      '<div class="timer-row"><div class="timer-track"><div class="timer-fill" id="timer-fill"></div></div>' +
-      '<span class="timer-num" id="timer-num">' + secondsLeft + 's</span></div>';
 
     var verdictHtml = "";
     if (answered) {
@@ -845,11 +1037,19 @@
       '<div class="score-hero"><span class="score-big">' + score + '/4</span><span class="score-label">Final score</span></div>' +
       '<div class="score-verdict">' + verdictText + '</div>' +
       '<div class="breakdown">' + breakdownHtml + '</div>' +
+      '<div class="compare">' +
+        '<div class="compare-title">Today’s players</div>' +
+        '<div id="compare-mount"><div class="compare-note">Loading today’s comparison…</div></div>' +
+      '</div>' +
       '<div class="btn-row">' +
         '<button class="primary" id="again">Play again</button>' +
         '<button class="ghost" id="share">Share score</button>' +
         '<span class="copy-note" id="copy-note" hidden>Copied — paste it anywhere.</span>' +
       '</div>';
+
+    maybeSubmitScore(currentDayKey, score);
+    loadStats._myScore = score;
+    loadStats(currentDayKey, document.getElementById("compare-mount"));
 
     document.getElementById("again").addEventListener("click", function () {
       state.index = 0;
@@ -867,8 +1067,8 @@
       function showNote() { note.hidden = false; setTimeout(function () { note.hidden = true; }, 1800); }
 
       if (navigator.share) {
-        // iOS Messages drops the "text" field and shows only a link card when "url" is
-        // set separately, so fold the link into the text itself instead.
+        // iOS Messages drops the "text" field and shows only a link card when
+        // "url" is set separately, so fold the link into the text itself instead.
         navigator.share({ title: "ACTLE", text: text + "\n" + shareUrl }).catch(function () {
           // user canceled the share sheet, or the browser refused it — either way, no error to show
         });
@@ -897,3 +1097,6 @@
   }
 })();
 </script>
+
+</body>
+</html>
