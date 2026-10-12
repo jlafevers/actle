@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>ACTLE — stats</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+  :root {
+    --bg: #f3ecdd; --surface: #fffdf7; --ink: #201c16; --ink-dim: #6b6256;
+    --accent: #b8791f; --border: #ddd0b2;
+  }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: "IBM Plex Sans", sans-serif; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 32px 16px 60px; }
+  h1 { font-family: "Fraunces", serif; font-size: 26px; margin: 0 0 18px; }
+  .gate { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .gate input { font-family: "IBM Plex Mono", monospace; font-size: 14px; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; width: 240px; max-width: 100%; }
+  .gate button, .reload { font-family: "IBM Plex Sans", sans-serif; font-size: 14px; font-weight: 600; background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 9px 16px; cursor: pointer; margin-left: 8px; }
+  .error { color: #b3261e; font-size: 13px; margin-top: 10px; }
+  .summary { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0; }
+  .chip { border: 1px solid var(--border); border-radius: 999px; padding: 7px 14px; font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--ink-dim); }
+  table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; font-size: 13px; }
+  th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { font-family: "IBM Plex Mono", monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-dim); }
+  .bar-cell { display: flex; align-items: center; gap: 8px; }
+  .bar-track { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; min-width: 60px; }
+  .bar-fill { height: 100%; background: var(--accent); }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>ACTLE — daily plays</h1>
+  <div class="gate" id="gate">
+    <div>
+      <input type="password" id="key" placeholder="Admin key">
+      <button id="go">View stats</button>
+    </div>
+    <div class="error hidden" id="error"></div>
+  </div>
+  <div id="results" class="hidden">
+    <div class="summary" id="summary"></div>
+    <button class="reload" id="reload">Reload</button>
+    <div style="height:14px"></div>
+    <table>
+      <thead><tr><th>Date</th><th>Total plays</th><th style="width:40%">Score breakdown (0–4)</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+</div>
+<script>
+(function () {
+  var keyInput = document.getElementById("key");
+  var saved = (function () { try { return localStorage.getItem("actle-admin-key") || ""; } catch (e) { return ""; } })();
+  if (saved) keyInput.value = saved;
+
+  function load() {
+    var key = keyInput.value.trim();
+    var errorEl = document.getElementById("error");
+    errorEl.classList.add("hidden");
+    fetch("/api/admin-stats?key=" + encodeURIComponent(key))
+      .then(function (r) {
+        if (r.status === 401) throw new Error("Wrong key.");
+        if (!r.ok) throw new Error("Something went wrong loading stats.");
+        return r.json();
+      })
+      .then(function (data) {
+        try { localStorage.setItem("actle-admin-key", key); } catch (e) {}
+        render(data.days || []);
+      })
+      .catch(function (e) {
+        errorEl.textContent = e.message;
+        errorEl.classList.remove("hidden");
+      });
+  }
+
+  function render(days) {
+    var sorted = days.slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; }); // newest first
+    var totalPlays = days.reduce(function (s, d) { return s + d.total; }, 0);
+    document.getElementById("summary").innerHTML =
+      '<div class="chip">' + days.length + ' days with data</div>' +
+      '<div class="chip">' + totalPlays + ' total plays recorded</div>';
+
+    var rowsHtml = sorted.map(function (d) {
+      var max = Math.max.apply(null, d.counts.concat([1]));
+      var barsHtml = d.counts.map(function (c, s) {
+        var pct = Math.round((c / max) * 100);
+        return '<div class="bar-track" title="' + s + '/4: ' + c + '"><div class="bar-fill" style="width:' + pct + '%"></div></div>';
+      }).join("");
+      return '<tr><td>' + d.date + '</td><td>' + d.total + '</td><td><div class="bar-cell">' + barsHtml + '</div></td></tr>';
+    }).join("");
+    document.getElementById("rows").innerHTML = rowsHtml || '<tr><td colspan="3">No plays recorded yet.</td></tr>';
+    document.getElementById("results").classList.remove("hidden");
+  }
+
+  document.getElementById("go").addEventListener("click", load);
+  document.getElementById("reload").addEventListener("click", load);
+  keyInput.addEventListener("keydown", function (e) { if (e.key === "Enter") load(); });
+  if (saved) load();
+})();
+</script>
+</body>
+</html>
