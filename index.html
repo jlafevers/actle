@@ -327,6 +327,7 @@
   .bar-col.mine .bar-label { color: var(--accent); }
 
   .copy-note { font-size: 12.5px; color: var(--ink-dim); }
+  .lock-note { margin-top: 16px; font-size: 12.5px; color: var(--ink-dim); }
 
   [hidden] { display: none !important; }
   @media (prefers-reduced-motion: no-preference) {
@@ -832,12 +833,14 @@
   function maybeSubmitScore(date, score) {
     try {
       if (localStorage.getItem(submittedKey(date))) return;
-      localStorage.setItem(submittedKey(date), "1");
     } catch (e) {}
     fetch("/api/submit-score", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ date: date, score: score })
+    }).then(function (r) {
+      // only remember success, so a failed attempt can retry on the next play today
+      if (r.ok) { try { localStorage.setItem(submittedKey(date), "1"); } catch (e) {} }
     }).catch(function () {});
   }
   function renderCompare(mount, counts, myScore) {
@@ -873,7 +876,31 @@
       });
   }
 
+  function resultKey(date) { return "actle-result-" + date; }
+  function loadCompletedToday(date) {
+    try {
+      var raw = localStorage.getItem(resultKey(date));
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.picked)) return parsed;
+    } catch (e) {}
+    return null;
+  }
+  function saveCompletedToday(date, picked, score) {
+    try { localStorage.setItem(resultKey(date), JSON.stringify({ picked: picked, score: score })); } catch (e) {}
+  }
+
   function render() {
+    // one attempt per day: if today's puzzle was already finished (even in an
+    // earlier visit or before a reload), jump straight to the locked result
+    if (!state.finished) {
+      var completed = loadCompletedToday(currentDayKey);
+      if (completed) {
+        state.started = true;
+        state.picked = completed.picked.slice();
+        state.finished = true;
+      }
+    }
     if (!state.started) return renderStart();
     if (state.finished) return renderResults();
     return renderQuestion();
@@ -1018,6 +1045,7 @@
       return { q: q, right: right, timedOut: state.picked[i] === -1 };
     });
     saveBest(score);
+    saveCompletedToday(currentDayKey, state.picked, score);
 
     var verdictText = [
       "Worth another lap — review the explanations and try again.",
@@ -1042,21 +1070,15 @@
         '<div id="compare-mount"><div class="compare-note">Loading today’s comparison…</div></div>' +
       '</div>' +
       '<div class="btn-row">' +
-        '<button class="primary" id="again">Play again</button>' +
-        '<button class="ghost" id="share">Share score</button>' +
+        '<button class="primary" id="share">Share score</button>' +
         '<span class="copy-note" id="copy-note" hidden>Copied — paste it anywhere.</span>' +
-      '</div>';
+      '</div>' +
+      '<div class="lock-note">That’s today’s ACTLE — come back after midnight for a new puzzle.</div>';
 
     maybeSubmitScore(currentDayKey, score);
     loadStats._myScore = score;
     loadStats(currentDayKey, document.getElementById("compare-mount"));
 
-    document.getElementById("again").addEventListener("click", function () {
-      state.index = 0;
-      state.picked = [];
-      state.finished = false;
-      render();
-    });
     document.getElementById("share").addEventListener("click", function () {
       var grid = rows.map(function (r) {
         return SECTION_EMOJI[r.q.section] + (r.right ? "✅" : "❌");
