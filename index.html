@@ -314,6 +314,7 @@
   }
   .percentile-line { font-size: 15px; margin-bottom: 4px; }
   .percentile-line b { color: var(--accent); }
+  .time-line { margin-top: 16px; }
   .compare-sub { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--ink-dim); }
   .compare-note { font-size: 13px; color: var(--ink-dim); line-height: 1.5; }
   .bars { display: flex; align-items: flex-end; gap: 10px; height: 110px; margin-top: 16px; padding: 0 2px; }
@@ -829,21 +830,28 @@
     } catch (e) {}
   }
 
+  function formatDuration(totalSeconds) {
+    var s = Math.max(0, Math.round(totalSeconds));
+    if (s < 60) return s + "s";
+    var m = Math.floor(s / 60), r = s % 60;
+    return m + "m " + (r < 10 ? "0" : "") + r + "s";
+  }
+
   function submittedKey(date) { return "actle-submitted-" + date; }
-  function maybeSubmitScore(date, score) {
+  function maybeSubmitScore(date, score, timeSeconds) {
     try {
       if (localStorage.getItem(submittedKey(date))) return;
     } catch (e) {}
     fetch("/api/submit-score", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ date: date, score: score })
+      body: JSON.stringify({ date: date, score: score, timeSeconds: timeSeconds })
     }).then(function (r) {
       // only remember success, so a failed attempt can retry on the next play today
       if (r.ok) { try { localStorage.setItem(submittedKey(date), "1"); } catch (e) {} }
     }).catch(function () {});
   }
-  function renderCompare(mount, counts, myScore) {
+  function renderCompare(mount, counts, myScore, timeInfo) {
     var total = counts.reduce(function (a, b) { return a + b; }, 0);
     if (total < 1) {
       mount.innerHTML = '<div class="compare-note">You’re the first to finish today’s ACTLE — check back later to see how others do.</div>';
@@ -862,15 +870,30 @@
         '<span class="bar-label">' + s + '/4</span>' +
         '</div>';
     }).join("");
+
+    var timeLine = "";
+    if (timeInfo && typeof timeInfo.myTimeSeconds === "number") {
+      var timeText = "You finished in <b>" + formatDuration(timeInfo.myTimeSeconds) + "</b>";
+      if (typeof timeInfo.fasterThanPercent === "number") {
+        timeText += " — faster than <b>" + timeInfo.fasterThanPercent + "%</b> of today’s players.";
+      } else {
+        timeText += ". Check back later to see how your time compares.";
+      }
+      timeLine = '<div class="percentile-line time-line">' + timeText + '</div>';
+    }
+
     mount.innerHTML =
       '<div class="percentile-line">Better than <b>' + pct + '%</b> of today’s players.</div>' +
       '<div class="compare-sub">' + total + ' ' + (total === 1 ? "player has" : "players have") + ' finished today’s ACTLE.</div>' +
-      '<div class="bars">' + barsHtml + '</div>';
+      '<div class="bars">' + barsHtml + '</div>' +
+      timeLine;
   }
-  function loadStats(date, mount) {
-    fetch("/api/stats?date=" + encodeURIComponent(date))
+  function loadStats(date, mount, myScore, myTimeSeconds) {
+    var url = "/api/stats?date=" + encodeURIComponent(date);
+    if (typeof myTimeSeconds === "number") url += "&time=" + encodeURIComponent(myTimeSeconds);
+    fetch(url)
       .then(function (r) { if (!r.ok) throw new Error("bad response"); return r.json(); })
-      .then(function (data) { renderCompare(mount, data.counts || [0,0,0,0,0], loadStats._myScore); })
+      .then(function (data) { renderCompare(mount, data.counts || [0,0,0,0,0], myScore, data.time); })
       .catch(function () {
         mount.innerHTML = '<div class="compare-note">Today’s comparison isn’t available right now.</div>';
       });
@@ -886,8 +909,8 @@
     } catch (e) {}
     return null;
   }
-  function saveCompletedToday(date, picked, score) {
-    try { localStorage.setItem(resultKey(date), JSON.stringify({ picked: picked, score: score })); } catch (e) {}
+  function saveCompletedToday(date, picked, score, timeSeconds) {
+    try { localStorage.setItem(resultKey(date), JSON.stringify({ picked: picked, score: score, timeSeconds: timeSeconds })); } catch (e) {}
   }
 
   function render() {
@@ -899,6 +922,9 @@
         state.started = true;
         state.picked = completed.picked.slice();
         state.finished = true;
+        // older saved results (before timing was added) won't have this — that's fine,
+        // renderResults() just skips the time comparison in that case
+        state.timeSeconds = typeof completed.timeSeconds === "number" ? completed.timeSeconds : null;
       }
     }
     if (!state.started) return renderStart();
@@ -920,6 +946,7 @@
       '<button class="primary" id="go">Start the clock</button>';
     document.getElementById("go").addEventListener("click", function () {
       state.started = true;
+      state.startedAt = Date.now();
       render();
     });
   }
@@ -1045,12 +1072,16 @@
       return { q: q, right: right, timedOut: state.picked[i] === -1 };
     });
     saveBest(score);
-    saveCompletedToday(currentDayKey, state.picked, score);
+    var timeSeconds = typeof state.timeSeconds === "number" ? state.timeSeconds :
+      Math.max(1, Math.round((Date.now() - (state.startedAt || Date.now())) / 1000));
+    state.timeSeconds = timeSeconds;
+    saveCompletedToday(currentDayKey, state.picked, score, timeSeconds);
 
     var verdictText = [
       "Worth another lap — review the explanations and try again.",
       "A rough start, but the pattern's there.",
       "Right down the middle — solid, with room to sharpen.",
+      "Almost there — just one slipped past.",
       "Clean sweep — all four, no mistakes."
     ][score];
 
@@ -1075,9 +1106,8 @@
       '</div>' +
       '<div class="lock-note">That’s today’s ACTLE — come back after midnight for a new puzzle.</div>';
 
-    maybeSubmitScore(currentDayKey, score);
-    loadStats._myScore = score;
-    loadStats(currentDayKey, document.getElementById("compare-mount"));
+    maybeSubmitScore(currentDayKey, score, timeSeconds);
+    loadStats(currentDayKey, document.getElementById("compare-mount"), score, timeSeconds);
 
     document.getElementById("share").addEventListener("click", function () {
       var grid = rows.map(function (r) {
