@@ -1205,7 +1205,7 @@
   function renderCompare(mount, counts, myScore, timeInfo) {
     var total = counts.reduce(function (a, b) { return a + b; }, 0);
     if (total < 1) {
-      mount.innerHTML = '<div class="compare-note">You’re the first to finish today’s ACTLE — check back later to see how others do.</div>';
+      mount.innerHTML = '<div class="compare-note">You’re the first to finish today’s ACTLE. Check back later to see how others do.</div>';
       return;
     }
     var below = 0;
@@ -1226,7 +1226,7 @@
     if (timeInfo && typeof timeInfo.myTimeSeconds === "number") {
       var timeText = "You finished in <b>" + formatDuration(timeInfo.myTimeSeconds) + "</b>";
       if (typeof timeInfo.fasterThanPercent === "number") {
-        timeText += " — faster than <b>" + timeInfo.fasterThanPercent + "%</b> of today’s players.";
+        timeText += ", faster than <b>" + timeInfo.fasterThanPercent + "%</b> of today’s players.";
       } else {
         timeText += ". Check back later to see how your time compares.";
       }
@@ -1368,7 +1368,7 @@
     var streakLine = streak < 1 ? "" :
       '<div class="stat-chip streak-chip">🔥 ' + streak + ' day streak</div>';
     card.innerHTML =
-      '<div class="start-copy">One question from each ACT section — Math, English, Reading, Science. You get 60 seconds on the clock per question, then the answer locks in and you see how you did.</div>' +
+      '<div class="start-copy">One question from each ACT section: Math, English, Reading, Science. You get 60 seconds on the clock per question, then the answer locks in and you see how you did.</div>' +
       '<div class="sections-preview">' +
         '<span class="tag">Math</span><span class="tag">English</span><span class="tag">Reading</span><span class="tag">Science</span>' +
       '</div>' +
@@ -1522,11 +1522,11 @@
     }
 
     var verdictText = [
-      "Worth another lap — review the explanations and try again.",
+      "Worth another lap. Review the explanations and try again.",
       "A rough start, but the pattern's there.",
-      "Right down the middle — solid, with room to sharpen.",
-      "Almost there — just one slipped past.",
-      "Clean sweep — all four, no mistakes."
+      "Right down the middle, solid, with room to sharpen.",
+      "Almost there. Just one slipped past.",
+      "Clean sweep. All four, no mistakes."
     ][score];
 
     var breakdownHtml = rows.map(function (r) {
@@ -1539,14 +1539,15 @@
     var streakHtml = streakInfo ? '<div class="streak-line">🔥 ' + streakInfo.count + (streakInfo.count === 1 ? " day streak" : " day streak") + '</div>' : "";
 
     var compareHtml = isArchive
-      ? '<div class="compare-note">Archive run — practice only, not counted in today’s stats.</div>'
+      ? '<div class="compare-note">Archive run: practice only, not counted in today’s stats.</div>'
       : '<div class="compare-title">Today’s players</div><div id="compare-mount"><div class="compare-note">Loading today’s comparison…</div></div>';
 
     var footerHtml = isArchive
-      ? '<div class="lock-note">Puzzle #' + puzzleNumber(state.archiveDate) + ' · ' + prettyDate(state.archiveDate) + ' — ' +
+      ? '<div class="lock-note">Puzzle #' + puzzleNumber(state.archiveDate) + ' · ' + prettyDate(state.archiveDate) + ' · ' +
         '<button class="link-back inline" id="archive-again">more past puzzles</button> · ' +
         '<button class="link-back inline" id="archive-today">back to today</button></div>'
-      : '<div class="lock-note">That’s today’s ACTLE — come back after midnight for a new puzzle.</div>';
+      : '<div class="lock-note">That’s today’s ACTLE. Come back after midnight for a new puzzle.<br>' +
+        '<button class="link-archive" id="archive-link">Play past puzzles →</button></div>';
 
     card.innerHTML =
       '<div class="score-hero"><span class="score-big">' + score + '/4</span><span class="score-label">Final score</span></div>' +
@@ -1556,7 +1557,7 @@
       '<div class="compare">' + compareHtml + '</div>' +
       '<div class="btn-row">' +
         '<button class="primary" id="share">Share score</button>' +
-        '<span class="copy-note" id="copy-note" hidden>Copied — paste it anywhere.</span>' +
+        '<span class="copy-note" id="copy-note" hidden>Copied. Paste it anywhere.</span>' +
       '</div>' +
       footerHtml;
 
@@ -1573,6 +1574,10 @@
     } else {
       maybeSubmitScore(currentDayKey, score, timeSeconds);
       loadStats(currentDayKey, document.getElementById("compare-mount"), score, timeSeconds);
+      document.getElementById("archive-link").addEventListener("click", function () {
+        viewingArchive = true;
+        render();
+      });
     }
 
     document.getElementById("share").addEventListener("click", function () {
