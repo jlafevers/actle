@@ -140,6 +140,15 @@
     padding: 10px 12px; width: 100%; max-width: 260px; box-sizing: border-box;
   }
   .name-field input:focus { outline: none; border-color: var(--accent); }
+
+  .scoring-info { margin: 2px 0 20px; }
+  .scoring-panel {
+    margin-top: 10px; border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 14px; background: var(--surface); font-size: 13px; line-height: 1.55; color: var(--ink-dim);
+  }
+  .scoring-panel p { margin: 0 0 8px; }
+  .scoring-panel p:last-child { margin-bottom: 0; }
+  .scoring-panel b { color: var(--ink); }
   .streak-chip { color: var(--accent-ink); border-color: var(--accent); }
   .link-archive {
     display: block; margin-top: 14px; background: none; border: none; cursor: pointer;
@@ -959,8 +968,8 @@
         prompt: "The data indicate that bacterial growth is greatest near a pH of:", options: ["4", "7", "8", "9"], correct: 1,
         explain: "The colony count peaks at pH 7, with 52 colonies — higher than any other pH tested." },
       { table: { headers: ["Light (hr/day)", "6", "9", "12", "15", "18"], row: ["Height (cm)", "8", "14", "19", "21", "20"] },
-        prompt: "Compared to the duration before it, which light duration produced the greatest height gain per added hour of light?", options: ["9 hours", "12 hours", "15 hours", "18 hours"], correct: 1,
-        explain: "From 9 to 12 hours, height rose 5 cm over 3 hours (≈ 1.7 cm/hr) — a faster rate than the other intervals." },
+        prompt: "Compared to the duration before it, which light duration produced the greatest height gain per added hour of light?", options: ["9 hours", "12 hours", "15 hours", "18 hours"], correct: 0,
+        explain: "From 6 to 9 hours, height rose 6 cm over 3 hours (2.0 cm/hr) — faster than 9 to 12 hours (5 cm over 3 hours, ≈1.7 cm/hr) or either later interval." },
       { table: { headers: ["Altitude (m)", "0", "1000", "2000", "3000", "4000"], row: ["Pressure (kPa)", "101", "90", "80", "70", "62"] },
         prompt: "The table shows that atmospheric pressure and altitude have what kind of relationship?", options: ["direct — both increase together.", "inverse — one increases as the other decreases.", "no clear relationship.", "cyclical."], correct: 1,
         explain: "As altitude rises, pressure consistently falls — the hallmark of an inverse relationship." },
@@ -1257,6 +1266,28 @@
     return Math.max(1, Math.min(36, avg));
   }
 
+  // ---------- "how scoring works" expandable info panel (shared by start + results) ----------
+  function scoringInfoHtml() {
+    return '<div class="scoring-info">' +
+      '<button class="link-archive" id="scoring-toggle">How scoring works ▾</button>' +
+      '<div class="scoring-panel" id="scoring-panel" hidden>' +
+        '<p>Each section scores 1–36 based on whether you got it right and how fast you answered.</p>' +
+        '<p><b>Correct:</b> faster answers score higher, up to 36.</p>' +
+        '<p><b>Wrong or timed out:</b> taking longer scores a little higher than a quick guess — it suggests you worked through it, even if you landed on the wrong answer.</p>' +
+        '<p>Your ACT score is the four section scores averaged and rounded, the same way the real ACT turns four section scores into one composite.</p>' +
+      '</div>' +
+    '</div>';
+  }
+  function wireScoringInfo() {
+    var toggle = document.getElementById("scoring-toggle");
+    if (!toggle) return;
+    toggle.addEventListener("click", function () {
+      var panel = document.getElementById("scoring-panel");
+      panel.hidden = !panel.hidden;
+      toggle.textContent = panel.hidden ? "How scoring works ▾" : "How scoring works ▴";
+    });
+  }
+
   // ---------- nickname (for the leaderboard only — not a real identity) ----------
   var NICKNAME_ADJ = ["Swift", "Clever", "Bold", "Quiet", "Sharp", "Lucky", "Calm", "Sly", "Brave", "Keen",
     "Nimble", "Wry", "Steady", "Quick", "Daring", "Crafty", "Sunny", "Rowdy", "Gritty", "Chipper"];
@@ -1530,7 +1561,9 @@
       '<div class="name-field"><label for="nickname-input">Name on today’s leaderboard</label>' +
       '<input type="text" id="nickname-input" maxlength="16" value="' + getNickname() + '" placeholder="Pick a name"></div>' +
       '<button class="primary" id="go">Start the clock</button>' +
-      '<button class="link-archive" id="archive-link">Play past puzzles →</button>';
+      '<button class="link-archive" id="archive-link">Play past puzzles →</button>' +
+      scoringInfoHtml();
+    wireScoringInfo();
     var nicknameInput = document.getElementById("nickname-input");
     nicknameInput.addEventListener("input", function () {
       // strip disallowed characters as they type, so the field never shows what it'll reject
@@ -1734,6 +1767,7 @@
       '<div class="score-sub-line">' + score + '/4 correct · ' + formatDuration(timeSeconds) + '</div>' +
       '<div class="score-verdict">' + verdictText + '</div>' +
       '<div class="section-scores">' + sectionChipsHtml + '</div>' +
+      scoringInfoHtml() +
       streakHtml +
       '<div class="breakdown">' + breakdownHtml + '</div>' +
       '<div class="compare">' + compareHtml + '</div>' +
@@ -1743,6 +1777,7 @@
         '<span class="copy-note" id="copy-note" hidden>Copied. Paste it anywhere.</span>' +
       '</div>' +
       footerHtml;
+    wireScoringInfo();
 
     if (isArchive) {
       document.getElementById("archive-again").addEventListener("click", function () {
