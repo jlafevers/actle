@@ -129,6 +129,17 @@
     letter-spacing: 0.03em;
   }
   .sections-preview { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 26px; }
+  .name-field { margin-bottom: 20px; }
+  .name-field label {
+    display: block; font-family: "IBM Plex Mono", monospace; font-size: 11.5px;
+    color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px;
+  }
+  .name-field input {
+    font-family: "IBM Plex Sans", sans-serif; font-size: 15px; color: var(--ink);
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 12px; width: 100%; max-width: 260px; box-sizing: border-box;
+  }
+  .name-field input:focus { outline: none; border-color: var(--accent); }
   .streak-chip { color: var(--accent-ink); border-color: var(--accent); }
   .link-archive {
     display: block; margin-top: 14px; background: none; border: none; cursor: pointer;
@@ -330,7 +341,40 @@
     line-height: 1;
   }
   .score-label { font-family: "IBM Plex Mono", monospace; font-size: 13px; color: var(--ink-dim); letter-spacing: 0.04em; text-transform: uppercase; }
-  .score-verdict { font-size: 16px; color: var(--ink-dim); margin-bottom: 24px; }
+  .score-sub-line { font-family: "IBM Plex Mono", monospace; font-size: 13px; color: var(--ink-dim); margin-bottom: 14px; }
+  .score-verdict { font-size: 16px; color: var(--ink-dim); margin-bottom: 18px; }
+
+  .section-scores { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+  .section-chip {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px;
+    background: var(--surface);
+  }
+  .section-chip .sc-sec { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.03em; }
+  .section-chip .sc-num { font-family: "Fraunces", Georgia, serif; font-weight: 700; font-size: 20px; }
+
+  /* ---------- rank / leaderboard ---------- */
+  .rank-block { margin: 26px 0 24px; border-top: 1px solid var(--border); padding-top: 20px; }
+  .rank-title {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 700;
+    font-size: 17px;
+    margin-bottom: 12px;
+  }
+  .rank-line { font-size: 15px; margin-bottom: 14px; }
+  .rank-line b { color: var(--accent); }
+  .top10-list { display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--border); }
+  .top10-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13.5px;
+  }
+  .top10-row .t-rank { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--ink-dim); width: 24px; flex: none; }
+  .top10-row .t-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .top10-row .t-score { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 13px; flex: none; }
+  .top10-row.mine { background: var(--correct-bg); border-radius: 6px; }
+  .top10-row.mine .t-name, .top10-row.mine .t-rank, .top10-row.mine .t-score { color: var(--accent); font-weight: 700; }
 
   .breakdown { display: flex; flex-direction: column; gap: 0; margin-bottom: 8px; border-top: 1px solid var(--border); }
   .b-row {
@@ -1130,6 +1174,7 @@
     started: false,
     index: 0,
     picked: [],      // index picked per question; -1 means timed out unanswered
+    qTimes: [],      // seconds elapsed on each question when answered (for the composite score)
     finished: false
   };
 
@@ -1160,6 +1205,7 @@
     state.started = false;
     state.index = 0;
     state.picked = [];
+    state.qTimes = [];
     state.finished = false;
     refreshMeta();
     render();
@@ -1188,18 +1234,92 @@
     return m + "m " + (r < 10 ? "0" : "") + r + "s";
   }
 
+  // ---------- ACT-style composite score (1-36), driven by correctness + speed ----------
+  // Not a real ACT scoring curve — just a deterministic, speed-sensitive mapping so the
+  // same performance always produces the same number (fair, reproducible, screenshot-safe).
+  function sectionScoreFor(correct, elapsedSeconds) {
+    var t = Math.max(0, Math.min(elapsedSeconds, TIME_LIMIT));
+    if (correct) {
+      if (t <= 8) return 36;
+      if (t <= 15) return 34;
+      if (t <= 25) return 31;
+      if (t <= 40) return 29;
+      return 26;
+    }
+    if (t <= 10) return 12;
+    if (t <= 25) return 15;
+    if (t <= 45) return 18;
+    return 20;
+  }
+  function compositeScoreFrom(sectionScores) {
+    var sum = sectionScores.reduce(function (a, b) { return a + b; }, 0);
+    var avg = Math.round(sum / sectionScores.length);
+    return Math.max(1, Math.min(36, avg));
+  }
+
+  // ---------- nickname (for the leaderboard only — not a real identity) ----------
+  var NICKNAME_ADJ = ["Swift", "Clever", "Bold", "Quiet", "Sharp", "Lucky", "Calm", "Sly", "Brave", "Keen",
+    "Nimble", "Wry", "Steady", "Quick", "Daring", "Crafty", "Sunny", "Rowdy", "Gritty", "Chipper"];
+  var NICKNAME_ANIMAL = ["Falcon", "Otter", "Fox", "Heron", "Badger", "Wolf", "Hare", "Lynx", "Raven", "Marten",
+    "Osprey", "Stoat", "Jay", "Wren", "Ibex", "Puma", "Finch", "Mole", "Crane", "Vole"];
+  // a short, deliberately conservative denylist — not exhaustive moderation, just a
+  // first filter so the most obvious abuse never makes it onto a public leaderboard;
+  // the server runs the same check independently
+  var NICKNAME_DENYLIST = ["fuck", "shit", "bitch", "cunt", "nigger", "nigga", "fag", "retard",
+    "rape", "nazi", "hitler", "admin", "moderator", "actle"];
+  function randomNickname() {
+    return NICKNAME_ADJ[Math.floor(Math.random() * NICKNAME_ADJ.length)] +
+      " " + NICKNAME_ANIMAL[Math.floor(Math.random() * NICKNAME_ANIMAL.length)];
+  }
+  function sanitizeNicknameInput(raw) {
+    var cleaned = (typeof raw === "string" ? raw : "").replace(/[^a-zA-Z0-9 ]/g, "").trim().slice(0, 16);
+    var lower = cleaned.toLowerCase();
+    var blocked = NICKNAME_DENYLIST.some(function (bad) { return lower.indexOf(bad) !== -1; });
+    if (!cleaned || blocked) return "";
+    return cleaned;
+  }
+  function getNickname() {
+    try {
+      var saved = localStorage.getItem("actle-nickname");
+      if (saved) return saved;
+      var n = randomNickname();
+      localStorage.setItem("actle-nickname", n);
+      return n;
+    } catch (e) {
+      return "Player";
+    }
+  }
+  function setNickname(raw) {
+    var clean = sanitizeNicknameInput(raw);
+    var n = clean || randomNickname();
+    try { localStorage.setItem("actle-nickname", n); } catch (e) {}
+    return n;
+  }
+
   function submittedKey(date) { return "actle-submitted-" + date; }
-  function maybeSubmitScore(date, score, timeSeconds) {
+  function memberKey(date) { return "actle-member-" + date; }
+  function maybeSubmitScore(date, score, timeSeconds, composite) {
     try {
       if (localStorage.getItem(submittedKey(date))) return;
     } catch (e) {}
     fetch("/api/submit-score", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ date: date, score: score, timeSeconds: timeSeconds })
+      body: JSON.stringify({
+        date: date, score: score, timeSeconds: timeSeconds,
+        composite: composite, nickname: getNickname()
+      })
     }).then(function (r) {
+      if (!r.ok) return null;
       // only remember success, so a failed attempt can retry on the next play today
-      if (r.ok) { try { localStorage.setItem(submittedKey(date), "1"); } catch (e) {} }
+      try { localStorage.setItem(submittedKey(date), "1"); } catch (e) {}
+      return r.json();
+    }).then(function (data) {
+      if (data && data.member) {
+        try { localStorage.setItem(memberKey(date), data.member); } catch (e) {}
+        var mount = document.getElementById("rank-mount");
+        if (mount) loadLeaderboard(date, mount, data.member);
+      }
     }).catch(function () {});
   }
   function renderCompare(mount, counts, myScore, timeInfo) {
@@ -1247,6 +1367,39 @@
       .then(function (data) { renderCompare(mount, data.counts || [0,0,0,0,0], myScore, data.time); })
       .catch(function () {
         mount.innerHTML = '<div class="compare-note">Today’s comparison isn’t available right now.</div>';
+      });
+  }
+
+  // ---------- rank + top 10 leaderboard ----------
+  function renderRank(mount, data, myMember) {
+    var total = data.total || 0;
+    if (total < 1) {
+      mount.innerHTML = '<div class="compare-note">You’re the first to finish today’s ACTLE.</div>';
+      return;
+    }
+    var rankLine = data.rank
+      ? '<div class="rank-line">You’re <b>#' + data.rank + '</b> of <b>' + total + '</b> today.</div>'
+      : '<div class="rank-line"><b>' + total + '</b> players have finished today.</div>';
+
+    var rowsHtml = (data.top || []).map(function (p, i) {
+      var mine = myMember && p.raw === myMember;
+      return '<div class="top10-row' + (mine ? " mine" : "") + '">' +
+        '<span class="t-rank">' + (i + 1) + '</span>' +
+        '<span class="t-name">' + p.name + (mine ? " (you)" : "") + '</span>' +
+        '<span class="t-score">' + p.composite + '</span>' +
+        '</div>';
+    }).join("");
+
+    mount.innerHTML = rankLine + '<div class="top10-list">' + rowsHtml + '</div>';
+  }
+  function loadLeaderboard(date, mount, myMember) {
+    var url = "/api/leaderboard?date=" + encodeURIComponent(date);
+    if (myMember) url += "&member=" + encodeURIComponent(myMember);
+    fetch(url)
+      .then(function (r) { if (!r.ok) throw new Error("bad response"); return r.json(); })
+      .then(function (data) { renderRank(mount, data, myMember); })
+      .catch(function () {
+        mount.innerHTML = '<div class="compare-note">Today’s leaderboard isn’t available right now.</div>';
       });
   }
 
@@ -1317,7 +1470,7 @@
       btn.addEventListener("click", function () {
         var d = btn.getAttribute("data-date");
         viewingArchive = false;
-        state = { started: true, index: 0, picked: [], finished: false, archiveDate: d, startedAt: Date.now() };
+        state = { started: true, index: 0, picked: [], qTimes: [], finished: false, archiveDate: d, startedAt: Date.now() };
         clearTimer();
         renderQuestion();
       });
@@ -1334,8 +1487,8 @@
     } catch (e) {}
     return null;
   }
-  function saveCompletedToday(date, picked, score, timeSeconds) {
-    try { localStorage.setItem(resultKey(date), JSON.stringify({ picked: picked, score: score, timeSeconds: timeSeconds })); } catch (e) {}
+  function saveCompletedToday(date, picked, score, timeSeconds, qTimes) {
+    try { localStorage.setItem(resultKey(date), JSON.stringify({ picked: picked, score: score, timeSeconds: timeSeconds, qTimes: qTimes })); } catch (e) {}
   }
 
   function render() {
@@ -1352,6 +1505,7 @@
         // older saved results (before timing was added) won't have this — that's fine,
         // renderResults() just skips the time comparison in that case
         state.timeSeconds = typeof completed.timeSeconds === "number" ? completed.timeSeconds : null;
+        state.qTimes = Array.isArray(completed.qTimes) ? completed.qTimes.slice() : [];
       }
     }
     if (!state.started) return renderStart();
@@ -1373,9 +1527,21 @@
         '<span class="tag">Math</span><span class="tag">English</span><span class="tag">Reading</span><span class="tag">Science</span>' +
       '</div>' +
       '<div class="start-stats"><div class="stat-chip">4 questions</div><div class="stat-chip">60s each</div>' + bestLine + streakLine + '</div>' +
+      '<div class="name-field"><label for="nickname-input">Name on today’s leaderboard</label>' +
+      '<input type="text" id="nickname-input" maxlength="16" value="' + getNickname() + '" placeholder="Pick a name"></div>' +
       '<button class="primary" id="go">Start the clock</button>' +
       '<button class="link-archive" id="archive-link">Play past puzzles →</button>';
+    var nicknameInput = document.getElementById("nickname-input");
+    nicknameInput.addEventListener("input", function () {
+      // strip disallowed characters as they type, so the field never shows what it'll reject
+      var cleaned = nicknameInput.value.replace(/[^a-zA-Z0-9 ]/g, "").slice(0, 16);
+      if (cleaned !== nicknameInput.value) nicknameInput.value = cleaned;
+    });
+    nicknameInput.addEventListener("blur", function () {
+      nicknameInput.value = setNickname(nicknameInput.value);
+    });
     document.getElementById("go").addEventListener("click", function () {
+      setNickname(nicknameInput.value);
       state.started = true;
       state.startedAt = Date.now();
       render();
@@ -1409,6 +1575,7 @@
       if (secondsLeft <= 0) {
         clearTimer();
         state.picked[i] = -1;
+        state.qTimes[i] = TIME_LIMIT;
         render();
         return;
       }
@@ -1483,6 +1650,7 @@
         b.addEventListener("click", function () {
           clearTimer();
           state.picked[i] = parseInt(b.getAttribute("data-i"), 10);
+          state.qTimes[i] = Math.max(0, TIME_LIMIT - secondsLeft);
           render();
         });
       });
@@ -1507,8 +1675,11 @@
     var rows = Q.map(function (q, i) {
       var right = state.picked[i] === q.correct;
       if (right) score++;
-      return { q: q, right: right, timedOut: state.picked[i] === -1 };
+      var elapsed = typeof state.qTimes[i] === "number" ? state.qTimes[i] : 30;
+      var sectionScore = sectionScoreFor(right, elapsed);
+      return { q: q, right: right, timedOut: state.picked[i] === -1, sectionScore: sectionScore };
     });
+    var composite = compositeScoreFrom(rows.map(function (r) { return r.sectionScore; }));
 
     var timeSeconds = typeof state.timeSeconds === "number" ? state.timeSeconds :
       Math.max(1, Math.round((Date.now() - (state.startedAt || Date.now())) / 1000));
@@ -1517,7 +1688,7 @@
     var streakInfo = null;
     if (!isArchive) {
       saveBest(score);
-      saveCompletedToday(currentDayKey, state.picked, score, timeSeconds);
+      saveCompletedToday(currentDayKey, state.picked, score, timeSeconds, state.qTimes);
       streakInfo = updateStreak(currentDayKey);
     }
 
@@ -1528,6 +1699,10 @@
       "Almost there. Just one slipped past.",
       "Clean sweep. All four, no mistakes."
     ][score];
+
+    var sectionChipsHtml = rows.map(function (r) {
+      return '<div class="section-chip"><span class="sc-sec">' + r.q.section + '</span><span class="sc-num">' + r.sectionScore + '</span></div>';
+    }).join("");
 
     var breakdownHtml = rows.map(function (r) {
       var markText = r.right ? "Correct" : (r.timedOut ? "Timed out" : "Missed");
@@ -1542,6 +1717,11 @@
       ? '<div class="compare-note">Archive run: practice only, not counted in today’s stats.</div>'
       : '<div class="compare-title">Today’s players</div><div id="compare-mount"><div class="compare-note">Loading today’s comparison…</div></div>';
 
+    var rankHtml = isArchive
+      ? ""
+      : '<div class="rank-block"><div class="rank-title">Today’s leaderboard</div>' +
+        '<div id="rank-mount"><div class="compare-note">Loading today’s rank…</div></div></div>';
+
     var footerHtml = isArchive
       ? '<div class="lock-note">Puzzle #' + puzzleNumber(state.archiveDate) + ' · ' + prettyDate(state.archiveDate) + ' · ' +
         '<button class="link-back inline" id="archive-again">more past puzzles</button> · ' +
@@ -1550,11 +1730,14 @@
         '<button class="link-archive" id="archive-link">Play past puzzles →</button></div>';
 
     card.innerHTML =
-      '<div class="score-hero"><span class="score-big">' + score + '/4</span><span class="score-label">Final score</span></div>' +
+      '<div class="score-hero"><span class="score-big">' + composite + '</span><span class="score-label">Your ACT score</span></div>' +
+      '<div class="score-sub-line">' + score + '/4 correct · ' + formatDuration(timeSeconds) + '</div>' +
       '<div class="score-verdict">' + verdictText + '</div>' +
+      '<div class="section-scores">' + sectionChipsHtml + '</div>' +
       streakHtml +
       '<div class="breakdown">' + breakdownHtml + '</div>' +
       '<div class="compare">' + compareHtml + '</div>' +
+      rankHtml +
       '<div class="btn-row">' +
         '<button class="primary" id="share">Share score</button>' +
         '<span class="copy-note" id="copy-note" hidden>Copied. Paste it anywhere.</span>' +
@@ -1564,16 +1747,19 @@
     if (isArchive) {
       document.getElementById("archive-again").addEventListener("click", function () {
         viewingArchive = true;
-        state = { started: false, index: 0, picked: [], finished: false };
+        state = { started: false, index: 0, picked: [], qTimes: [], finished: false };
         render();
       });
       document.getElementById("archive-today").addEventListener("click", function () {
-        state = { started: false, index: 0, picked: [], finished: false };
+        state = { started: false, index: 0, picked: [], qTimes: [], finished: false };
         render();
       });
     } else {
-      maybeSubmitScore(currentDayKey, score, timeSeconds);
+      maybeSubmitScore(currentDayKey, score, timeSeconds, composite);
       loadStats(currentDayKey, document.getElementById("compare-mount"), score, timeSeconds);
+      var savedMember = null;
+      try { savedMember = localStorage.getItem(memberKey(currentDayKey)); } catch (e) {}
+      loadLeaderboard(currentDayKey, document.getElementById("rank-mount"), savedMember);
       document.getElementById("archive-link").addEventListener("click", function () {
         viewingArchive = true;
         render();
@@ -1586,8 +1772,8 @@
       }).join(" ");
       var shareUrl = "https://actle.org";
       var text = isArchive
-        ? "I scored " + score + "/4 on an ACTLE archive puzzle!\n" + grid
-        : "I scored " + score + "/4 on ACTLE today!\n" + grid;
+        ? "I scored a " + composite + " on an ACTLE archive puzzle!\n" + grid
+        : "I scored a " + composite + " on today’s ACTLE, think you can beat it?\n" + grid;
       var note = document.getElementById("copy-note");
       function showNote() { note.hidden = false; setTimeout(function () { note.hidden = true; }, 1800); }
 
