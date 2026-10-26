@@ -78,6 +78,7 @@ export default async function handler(req, res) {
     }
 
     var member = null;
+    var ownerToken = null;
     if (hasValidComposite) {
       var nickname = sanitizeNickname(body && body.nickname);
       var safeTime = hasValidTime ? Math.round(timeSeconds) : 999;
@@ -92,9 +93,18 @@ export default async function handler(req, res) {
       try {
         await fetch(url + "/zadd/" + encodeURIComponent(lbKey) + "/" + sortVal + "/" + encodeURIComponent(member), { headers: headers });
       } catch (e) { member = null; }
+
+      // a random owner token lets this browser (and only this browser) rename the entry
+      // later via /api/rename
+      if (member) {
+        ownerToken = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+        try {
+          await fetch(url + "/hset/" + encodeURIComponent("actle:owners:" + date) + "/" + encodeURIComponent(member) + "/" + ownerToken, { headers: headers });
+        } catch (e) { ownerToken = null; }
+      }
     }
 
-    res.status(200).json({ ok: true, member: member });
+    res.status(200).json({ ok: true, member: member, token: ownerToken });
   } catch (e) {
     res.status(500).json({ error: "Failed to record score" });
   }
