@@ -149,6 +149,14 @@
   .scoring-panel p { margin: 0 0 8px; }
   .scoring-panel p:last-child { margin-bottom: 0; }
   .scoring-panel b { color: var(--ink); }
+  .sc-tables { display: flex; gap: 12px; flex-wrap: wrap; margin: 4px 0 12px; }
+  .sc-table { flex: 1; min-width: 140px; border-collapse: collapse; font-size: 12.5px; line-height: 1.4; align-self: flex-start; }
+  .sc-table th, .sc-table td { white-space: nowrap; vertical-align: middle; }
+  .sc-table caption { text-align: left; font-family: "IBM Plex Mono", monospace; font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink); padding-bottom: 4px; }
+  .sc-table th { text-align: left; font-weight: 500; color: var(--ink-dim); border-bottom: 1px solid var(--border); padding: 3px 4px; }
+  .sc-table td { padding: 3px 4px; border-bottom: 1px solid var(--paper-line); color: var(--ink); }
+  .sc-table td:last-child, .sc-table th:last-child { text-align: right; font-family: "IBM Plex Mono", monospace; font-weight: 600; }
   .streak-chip { color: var(--accent-ink); border-color: var(--accent); }
   .link-archive {
     display: block; margin-top: 14px; background: none; border: none; cursor: pointer;
@@ -382,6 +390,17 @@
   .top10-row .t-rank { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--ink-dim); width: 24px; flex: none; }
   .top10-row .t-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .top10-row .t-score { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 13px; flex: none; }
+  .rename-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 13.5px; color: var(--ink-dim); }
+  .rename-row b { color: var(--ink); }
+  .rename-form { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .rename-form input {
+    font-family: "IBM Plex Sans", sans-serif; font-size: 15px; color: var(--ink);
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 10px; flex: 1; min-width: 0; max-width: 220px; box-sizing: border-box;
+  }
+  .rename-form input:focus { outline: none; border-color: var(--accent); }
+  .rename-form .primary.small { padding: 8px 14px; font-size: 14px; }
+  .rename-msg { width: 100%; font-size: 12.5px; color: var(--incorrect); }
   .top10-row.mine { background: var(--correct-bg); border-radius: 6px; }
   .top10-row.mine .t-name, .top10-row.mine .t-rank, .top10-row.mine .t-score { color: var(--accent); font-weight: 700; }
 
@@ -1271,10 +1290,28 @@
     return '<div class="scoring-info">' +
       '<button class="link-archive" id="scoring-toggle">How scoring works ▾</button>' +
       '<div class="scoring-panel" id="scoring-panel" hidden>' +
-        '<p>Each section scores 1–36 based on whether you got it right and how fast you answered.</p>' +
-        '<p><b>Correct:</b> faster answers score higher, up to 36.</p>' +
-        '<p><b>Wrong or timed out:</b> taking longer scores a little higher than a quick guess — it suggests you worked through it, even if you landed on the wrong answer.</p>' +
-        '<p>Your ACT score is the four section scores averaged and rounded, the same way the real ACT turns four section scores into one composite.</p>' +
+        '<p>You get <b>60 seconds</b> per question. Each section (Math, English, Reading, Science) scores 1–36 based on whether you got it right and how many seconds you took to answer.</p>' +
+        '<div class="sc-tables">' +
+          '<table class="sc-table"><caption>Correct answer</caption>' +
+            '<tr><th>Answered in</th><th>Score</th></tr>' +
+            '<tr><td>0–8 sec</td><td>36</td></tr>' +
+            '<tr><td>9–15 sec</td><td>34</td></tr>' +
+            '<tr><td>16–25 sec</td><td>31</td></tr>' +
+            '<tr><td>26–40 sec</td><td>29</td></tr>' +
+            '<tr><td>41–60 sec</td><td>26</td></tr>' +
+          '</table>' +
+          '<table class="sc-table"><caption>Wrong or timed out</caption>' +
+            '<tr><th>Answered in</th><th>Score</th></tr>' +
+            '<tr><td>0–10 sec</td><td>12</td></tr>' +
+            '<tr><td>11–25 sec</td><td>15</td></tr>' +
+            '<tr><td>26–45 sec</td><td>18</td></tr>' +
+            '<tr><td>46–60 sec</td><td>20</td></tr>' +
+          '</table>' +
+        '</div>' +
+        '<p><b>Why does a slow wrong answer beat a fast one?</b> Taking your time suggests you actually worked the problem; a 3-second miss is usually a guess. Even so, any correct answer (26+) beats any wrong one (20 max).</p>' +
+        '<p><b>Your ACT score</b> is the four section scores averaged and rounded, the same way the real ACT builds its composite. Example: 36 + 34 + 31 + 26 = 127 ÷ 4 = 31.75 → <b>32</b>.</p>' +
+        '<p><b>Leaderboard &amp; percentile:</b> everyone is ranked by ACT score; ties go to whoever finished all four questions faster. “Better than X% of today’s players” uses that same ranking, so #1 is always better than 100%.</p>' +
+        '<p>The bar chart shows how many questions (0–4) each player got right, and the time line compares your total time against everyone else’s.</p>' +
       '</div>' +
     '</div>';
   }
@@ -1329,6 +1366,7 @@
 
   function submittedKey(date) { return "actle-submitted-" + date; }
   function memberKey(date) { return "actle-member-" + date; }
+  function tokenKey(date) { return "actle-owner-" + date; }
   function maybeSubmitScore(date, score, timeSeconds, composite) {
     try {
       if (localStorage.getItem(submittedKey(date))) return;
@@ -1348,6 +1386,7 @@
     }).then(function (data) {
       if (data && data.member) {
         try { localStorage.setItem(memberKey(date), data.member); } catch (e) {}
+        if (data.token) { try { localStorage.setItem(tokenKey(date), data.token); } catch (e) {} }
         var mount = document.getElementById("rank-mount");
         if (mount) loadLeaderboard(date, mount, data.member);
       }
@@ -1359,9 +1398,6 @@
       mount.innerHTML = '<div class="compare-note">You’re the first to finish today’s ACTLE. Check back later to see how others do.</div>';
       return;
     }
-    var below = 0;
-    for (var s = 0; s < myScore; s++) below += counts[s];
-    var pct = Math.round((below / total) * 100);
     var max = Math.max.apply(null, counts.concat([1]));
     var barsHtml = counts.map(function (c, s) {
       var h = Math.max(Math.round((c / max) * 100), c > 0 ? 6 : 2);
@@ -1385,7 +1421,7 @@
     }
 
     mount.innerHTML =
-      '<div class="percentile-line">Better than <b>' + pct + '%</b> of today’s players.</div>' +
+      '<div class="percentile-line" id="pct-line">' + lastPctHtml + '</div>' +
       '<div class="compare-sub">' + total + ' ' + (total === 1 ? "player has" : "players have") + ' finished today’s ACTLE.</div>' +
       '<div class="bars">' + barsHtml + '</div>' +
       timeLine;
@@ -1402,7 +1438,24 @@
   }
 
   // ---------- rank + top 10 leaderboard ----------
+  // the "Better than X%" line is based on leaderboard rank (ACT score, then time),
+  // so it always agrees with "You're #N of M"
+  var lastPctHtml = "";
+  function setPercentileLine(data) {
+    var total = data.total || 0;
+    if (data.rank && total > 1) {
+      var pct = Math.round(((total - data.rank) / (total - 1)) * 100);
+      lastPctHtml = "Better than <b>" + pct + "%</b> of today’s players.";
+    } else if (data.rank && total === 1) {
+      lastPctHtml = "You’re the first to finish today.";
+    } else {
+      lastPctHtml = "";
+    }
+    var el = document.getElementById("pct-line");
+    if (el) el.innerHTML = lastPctHtml;
+  }
   function renderRank(mount, data, myMember) {
+    setPercentileLine(data);
     var total = data.total || 0;
     if (total < 1) {
       mount.innerHTML = '<div class="compare-note">You’re the first to finish today’s ACTLE.</div>';
@@ -1421,7 +1474,66 @@
         '</div>';
     }).join("");
 
-    mount.innerHTML = rankLine + '<div class="top10-list">' + rowsHtml + '</div>';
+    var renameHtml = (myMember && data.rank)
+      ? '<div class="rename-row" id="rename-row">' +
+          '<span class="rename-current">Playing as <b>' + (myMember.split("~")[0] || "Player") + '</b></span>' +
+          '<button class="link-back inline" id="rename-open">Rename</button>' +
+        '</div>' +
+        '<form class="rename-form" id="rename-form" hidden>' +
+          '<input type="text" id="rename-input" maxlength="16" placeholder="New name" autocomplete="off">' +
+          '<button type="submit" class="primary small" id="rename-save">Save</button>' +
+          '<button type="button" class="link-back inline" id="rename-cancel">Cancel</button>' +
+          '<div class="rename-msg" id="rename-msg" hidden></div>' +
+        '</form>'
+      : "";
+
+    mount.innerHTML = rankLine + '<div class="top10-list">' + rowsHtml + '</div>' + renameHtml;
+    if (renameHtml) wireRename(mount, myMember);
+  }
+  function wireRename(mount, myMember) {
+    var row = document.getElementById("rename-row");
+    var form = document.getElementById("rename-form");
+    var input = document.getElementById("rename-input");
+    var msg = document.getElementById("rename-msg");
+    var save = document.getElementById("rename-save");
+    function showMsg(t) { msg.textContent = t; msg.hidden = !t; }
+    document.getElementById("rename-open").addEventListener("click", function () {
+      row.hidden = true; form.hidden = false;
+      input.value = myMember.split("~")[0] || "";
+      input.focus(); input.select();
+    });
+    document.getElementById("rename-cancel").addEventListener("click", function () {
+      form.hidden = true; row.hidden = false; showMsg("");
+    });
+    input.addEventListener("input", function () {
+      var v = input.value.replace(/[^a-zA-Z0-9 ]/g, "");
+      if (v !== input.value) input.value = v;
+    });
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var clean = sanitizeNicknameInput(input.value);
+      if (!clean) { showMsg("That name isn’t allowed. Try another."); return; }
+      var token = null;
+      try { token = localStorage.getItem(tokenKey(currentDayKey)); } catch (err) {}
+      save.disabled = true; showMsg("");
+      fetch("/api/rename", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date: currentDayKey, member: myMember, token: token, nickname: clean })
+      }).then(function (r) {
+        return r.json().then(function (d) { return { ok: r.ok, d: d }; });
+      }).then(function (res) {
+        save.disabled = false;
+        if (!res.ok || !res.d.member) { showMsg((res.d && res.d.error) || "Couldn’t rename right now."); return; }
+        try {
+          localStorage.setItem(memberKey(currentDayKey), res.d.member);
+          localStorage.setItem("actle-nickname", res.d.nickname);
+        } catch (err) {}
+        loadLeaderboard(currentDayKey, mount, res.d.member);
+      }).catch(function () {
+        save.disabled = false; showMsg("Couldn’t rename right now.");
+      });
+    });
   }
   function loadLeaderboard(date, mount, myMember) {
     var url = "/api/leaderboard?date=" + encodeURIComponent(date);
